@@ -1,3 +1,11 @@
+## 0.1.2
+
+* Add `dart run owlscope:reverse` — runs `adb reverse tcp:9090 tcp:9090` on
+  every connected Android device. Physical Android phones can now reach the
+  desktop via plain `localhost` without LAN IP / firewall config.
+* Recommended host on all platforms is now `localhost`. Run
+  `owlscope:reverse` once after plugging in the phone (or after reboot).
+
 ## 0.1.1
 
 * Loosen `web_socket_channel` constraint to `>=2.4.5 <4.0.0` so apps that depend
