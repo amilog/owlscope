@@ -1,3 +1,8 @@
+## 0.1.1
+
+* Loosen `web_socket_channel` constraint to `>=2.4.5 <4.0.0` so apps that depend
+  on `web ^1.x` (e.g. `device_info_plus 12.x`) can resolve.
+
 ## 0.1.0
 
 * Initial release.
