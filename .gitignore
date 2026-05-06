@@ -11,3 +11,7 @@ coverage
 .turbo
 .cache
 *.tsbuildinfo
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/.symlinks/

@@ -1,0 +1,6 @@
+# Local development override — ignored when publishing to pub.dev.
+# Forces this adapter to consume the in-repo client-flutter source while
+# we develop, even though pubspec.yaml declares `owlscope: ^0.1.0`.
+dependency_overrides:
+  owlscope:
+    path: ../client-flutter

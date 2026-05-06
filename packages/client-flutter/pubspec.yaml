@@ -1,7 +1,9 @@
 name: owlscope
-description: OwlScope client SDK for Flutter — forwards print/error/HTTP/navigation/performance events to the OwlScope desktop app over WebSocket.
+description: Real-time debug & monitoring SDK for Flutter — forwards print, errors, HTTP traffic, navigation and performance events to the OwlScope desktop app over WebSocket.
 version: 0.1.0
-publish_to: none
+homepage: https://github.com/amilog/owlscope
+repository: https://github.com/amilog/owlscope
+issue_tracker: https://github.com/amilog/owlscope/issues
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
