@@ -7,7 +7,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlscope/auto.dart';
 import 'package:owlscope_riverpod/owlscope_riverpod.dart';
 
-final counterProvider = StateProvider<int>((ref) => 0, name: 'counter');
+class CounterNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void increment() => state++;
+}
+
+final counterProvider = NotifierProvider<CounterNotifier, int>(
+  CounterNotifier.new,
+  name: 'counter',
+);
 
 void main() {
   owlscopeAuto(() {
@@ -36,7 +46,7 @@ class ExampleApp extends ConsumerWidget {
               Text('counter: $count'),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: () => ref.read(counterProvider.notifier).state++,
+                onPressed: () => ref.read(counterProvider.notifier).increment(),
                 child: const Text('increment (watch State panel in OwlScope)'),
               ),
             ],

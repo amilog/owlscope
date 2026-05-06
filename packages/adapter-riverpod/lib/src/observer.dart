@@ -1,7 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlscope/owlscope.dart';
 
-class OwlScopeRiverpodObserver extends ProviderObserver {
+/// Riverpod observer that forwards provider lifecycle and state changes to
+/// the OwlScope desktop app.
+///
+/// Attach via `ProviderScope(observers: [OwlScopeRiverpodObserver()])`.
+final class OwlScopeRiverpodObserver extends ProviderObserver {
   /// If true, emit `provider:change` for `didAddProvider` and `didDisposeProvider`.
   /// Defaults to true; turn off if you only care about state transitions.
   final bool emitLifecycle;
@@ -14,17 +18,19 @@ class OwlScopeRiverpodObserver extends ProviderObserver {
     this.maxDepth = 10,
   });
 
-  String _providerName(ProviderBase<Object?> provider) {
-    final name = provider.name;
+  String _providerName(dynamic provider) {
+    final name = provider.name as String?;
     if (name != null && name.isNotEmpty) return name;
     return provider.runtimeType.toString();
   }
 
-  Map<String, dynamic> _providerInfo(ProviderBase<Object?> provider) {
+  Map<String, dynamic> _providerInfo(dynamic provider) {
+    final argument = provider.argument;
+    final from = provider.from;
     return {
       'name': _providerName(provider),
-      if (provider.argument != null) 'argument': provider.argument.toString(),
-      'family': provider.from?.toString(),
+      if (argument != null) 'argument': argument.toString(),
+      'family': from?.toString(),
       'runtimeType': provider.runtimeType.toString(),
     };
   }
@@ -39,18 +45,14 @@ class OwlScopeRiverpodObserver extends ProviderObserver {
   }
 
   @override
-  void didAddProvider(
-    ProviderBase<Object?> provider,
-    Object? value,
-    ProviderContainer container,
-  ) {
+  void didAddProvider(ProviderObserverContext context, Object? value) {
     if (!emitLifecycle) return;
     _safeEmit(() {
       OwlScope.instance.emit(
         type: EventTypes.providerChange,
         payload: {
           'event': 'add',
-          'provider': _providerInfo(provider),
+          'provider': _providerInfo(context.provider),
           'value': value,
         },
       );
@@ -59,16 +61,15 @@ class OwlScopeRiverpodObserver extends ProviderObserver {
 
   @override
   void didUpdateProvider(
-    ProviderBase<Object?> provider,
+    ProviderObserverContext context,
     Object? previousValue,
     Object? newValue,
-    ProviderContainer container,
   ) {
     _safeEmit(() {
       OwlScope.instance.emit(
         type: EventTypes.stateChange,
         payload: {
-          'provider': _providerInfo(provider),
+          'provider': _providerInfo(context.provider),
           'previous': previousValue,
           'next': newValue,
         },
@@ -77,17 +78,14 @@ class OwlScopeRiverpodObserver extends ProviderObserver {
   }
 
   @override
-  void didDisposeProvider(
-    ProviderBase<Object?> provider,
-    ProviderContainer container,
-  ) {
+  void didDisposeProvider(ProviderObserverContext context) {
     if (!emitLifecycle) return;
     _safeEmit(() {
       OwlScope.instance.emit(
         type: EventTypes.providerChange,
         payload: {
           'event': 'dispose',
-          'provider': _providerInfo(provider),
+          'provider': _providerInfo(context.provider),
         },
       );
     });
@@ -95,10 +93,9 @@ class OwlScopeRiverpodObserver extends ProviderObserver {
 
   @override
   void providerDidFail(
-    ProviderBase<Object?> provider,
+    ProviderObserverContext context,
     Object error,
     StackTrace stackTrace,
-    ProviderContainer container,
   ) {
     _safeEmit(() {
       OwlScope.instance.emit(
@@ -106,7 +103,7 @@ class OwlScopeRiverpodObserver extends ProviderObserver {
         level: LogLevels.error,
         payload: {
           'message': error.toString(),
-          'provider': _providerInfo(provider),
+          'provider': _providerInfo(context.provider),
         },
         meta: {'stackTrace': stackTrace.toString()},
       );

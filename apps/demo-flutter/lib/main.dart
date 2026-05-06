@@ -16,10 +16,28 @@ String _resolveHost() {
   return 'localhost';
 }
 
-// ─── Riverpod providers ────────────────────────────────────────────────
-final counterProvider = StateProvider<int>((ref) => 0, name: 'counter');
-final usernameProvider =
-    StateProvider<String>((ref) => 'guest', name: 'username');
+// ─── Riverpod providers (Riverpod 3.x Notifier API) ────────────────────
+class CounterNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void increment() => state++;
+  void reset() => state = 0;
+}
+
+class UsernameNotifier extends Notifier<String> {
+  @override
+  String build() => 'guest';
+
+  void setName(String name) => state = name;
+}
+
+final counterProvider =
+    NotifierProvider<CounterNotifier, int>(CounterNotifier.new, name: 'counter');
+final usernameProvider = NotifierProvider<UsernameNotifier, String>(
+  UsernameNotifier.new,
+  name: 'username',
+);
 final greetingProvider = Provider<String>(
   (ref) => 'Hello, ${ref.watch(usernameProvider)}!',
   name: 'greeting',
@@ -136,18 +154,18 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _bumpRiverpodCounter() {
-    ref.read(counterProvider.notifier).state++;
+    ref.read(counterProvider.notifier).increment();
   }
 
   void _resetRiverpodCounter() {
-    ref.read(counterProvider.notifier).state = 0;
+    ref.read(counterProvider.notifier).reset();
   }
 
   void _changeUsername() {
     final names = ['guest', 'amin', 'reactotron', 'flutter-fan'];
     final current = ref.read(usernameProvider);
     final next = names[(names.indexOf(current) + 1) % names.length];
-    ref.read(usernameProvider.notifier).state = next;
+    ref.read(usernameProvider.notifier).setName(next);
   }
 
   @override
