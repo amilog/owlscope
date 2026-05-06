@@ -1,3 +1,14 @@
+## 0.1.3
+
+* Auto-fallback transport: the SDK now tries `localhost`, `10.0.2.2` and
+  `10.0.3.2` in sequence and picks the first that connects. Default config
+  works on iOS simulator, AVD emulator, Genymotion and physical Android via
+  `adb reverse` — no host config needed in the common cases.
+* Per-attempt 3-second connect timeout so a stale candidate doesn't block
+  the next one.
+* Better diagnostic logs — emits the URI on success and a hint with
+  `owlscope:reverse` when nothing reachable.
+
 ## 0.1.2
 
 * Add `dart run owlscope:reverse` — runs `adb reverse tcp:9090 tcp:9090` on

@@ -10,7 +10,13 @@ class TransportConfig {
   final String? url;
   final String host;
   final int port;
+
+  /// Hosts to try in order if [host] fails to connect. Defaults cover the
+  /// common Android emulator IPs so a single `localhost` host works
+  /// transparently for simulator + emulator + adb reverse setups.
+  final List<String> fallbackHosts;
   final Duration reconnectInterval;
+  final Duration connectTimeout;
   final int maxQueueSize;
   final bool silent;
 
@@ -18,7 +24,9 @@ class TransportConfig {
     this.url,
     this.host = 'localhost',
     this.port = 9090,
+    this.fallbackHosts = const ['10.0.2.2', '10.0.3.2'],
     this.reconnectInterval = const Duration(seconds: 2),
+    this.connectTimeout = const Duration(seconds: 3),
     this.maxQueueSize = 1000,
     this.silent = true,
   });
@@ -26,6 +34,19 @@ class TransportConfig {
   Uri get uri {
     if (url != null) return Uri.parse(url!);
     return Uri.parse('ws://$host:$port');
+  }
+
+  /// Every candidate URI to try, deduped, in priority order.
+  Iterable<Uri> get candidates sync* {
+    if (url != null) {
+      yield Uri.parse(url!);
+      return;
+    }
+    final seen = <String>{};
+    for (final h in [host, ...fallbackHosts]) {
+      final u = Uri.parse('ws://$h:$port');
+      if (seen.add(u.toString())) yield u;
+    }
   }
 }
 
@@ -51,54 +72,68 @@ class Transport {
     _onMessage = handler;
   }
 
+  /// Try each candidate URI in turn; first one whose `ready` resolves wins.
   Future<void> connect() async {
     if (_state == _ConnState.connecting || _state == _ConnState.open) return;
-
     _state = _ConnState.connecting;
-    _log('connecting to ${config.uri}');
 
-    final WebSocketChannel ch;
-    try {
-      ch = WebSocketChannel.connect(config.uri);
-    } catch (e) {
-      _log('connect threw: $e');
-      _state = _ConnState.closed;
-      _scheduleReconnect();
-      return;
-    }
-    _channel = ch;
+    for (final uri in config.candidates) {
+      _log('connecting to $uri');
+      final channel = _tryOpen(uri);
+      if (channel == null) continue;
 
-    ch.stream.listen(
-      (raw) {
-        if (_onMessage == null) return;
+      try {
+        await channel.ready.timeout(config.connectTimeout);
+      } catch (e) {
+        _log('  failed: $e');
         try {
-          final text = raw is String ? raw : utf8.decode(raw as List<int>);
-          final msg = jsonDecode(text) as Map<String, dynamic>;
-          _onMessage!(msg);
-        } catch (_) {
-          /* ignore */
-        }
-      },
-      onDone: _onClose,
-      onError: (e) => _log('stream error: $e'),
-      cancelOnError: false,
-    );
+          await channel.sink.close();
+        } catch (_) {}
+        continue;
+      }
 
-    try {
-      await ch.ready;
-    } catch (e) {
-      _log('ready failed: $e');
-      // onDone handler will fire and reconnect for us.
+      // Success — wire up listeners on this channel.
+      _channel = channel;
+      _log('connected via $uri');
+
+      channel.stream.listen(
+        (raw) {
+          if (_onMessage == null) return;
+          try {
+            final text = raw is String ? raw : utf8.decode(raw as List<int>);
+            final msg = jsonDecode(text) as Map<String, dynamic>;
+            _onMessage!(msg);
+          } catch (_) {
+            /* ignore */
+          }
+        },
+        onDone: _onClose,
+        onError: (e) => _log('stream error: $e'),
+        cancelOnError: false,
+      );
+
+      _onOpen();
       return;
     }
 
-    _log('connected');
-    _onOpen();
+    // None of the candidates worked — schedule a retry and bail.
+    _state = _ConnState.closed;
+    _log(
+      'no host reachable. Tried: '
+      '${config.candidates.map((u) => '${u.host}:${u.port}').join(', ')}.\n'
+      '  Hint: run `dart run owlscope:reverse` for physical Android phones,\n'
+      '  or pass host: <your Mac LAN IP> for physical iOS devices.',
+    );
+    _scheduleReconnect();
   }
 
-  void _log(String message) {
-    if (config.silent) return;
-    debugPrint('[owlscope] $message');
+  WebSocketChannel? _tryOpen(Uri uri) {
+    try {
+      return WebSocketChannel.connect(uri);
+    } catch (e) {
+      _log('  $uri threw: $e');
+      return null;
+    }
   }
 
   void _onOpen() {
@@ -150,7 +185,7 @@ class Transport {
     if (_reconnectTimer != null) return;
     _reconnectTimer = Timer(config.reconnectInterval, () {
       _reconnectTimer = null;
-      // Fire-and-forget; reconnect will reschedule itself if it fails again.
+      // Fire-and-forget; if it fails it will reschedule.
       connect();
     });
   }
@@ -165,6 +200,11 @@ class Transport {
   void _stopHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
+  }
+
+  void _log(String message) {
+    if (config.silent) return;
+    debugPrint('[owlscope] $message');
   }
 
   Future<void> close() async {
