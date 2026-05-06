@@ -36,13 +36,61 @@ This idempotent command edits three files:
 
 To revert later: `dart run owlscope:teardown`.
 
-### 3. One line in `main.dart`
+### 3. Wrap your `main()`
+
+#### Simplest case
 
 ```dart
 import 'package:owlscope/auto.dart';
 
 void main() => owlscopeAuto(() => runApp(const MyApp()));
 ```
+
+#### Realistic case — async setup, multiple platforms, Riverpod
+
+Most real apps need `WidgetsFlutterBinding.ensureInitialized()`, async init,
+and platform-specific host (Android emulator routes localhost to `10.0.2.2`):
+
+```dart
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:owlscope/auto.dart';
+import 'package:owlscope_riverpod/owlscope_riverpod.dart';
+
+String _owlHost() {
+  if (kIsWeb) return 'localhost';
+  try {
+    if (Platform.isAndroid) return '10.0.2.2';
+  } catch (_) {}
+  return 'localhost';
+}
+
+void main() {
+  owlscopeAuto(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // your existing init: SystemChrome, SharedPreferences, DI, etc.
+      await initializeDependencies();
+
+      runApp(
+        ProviderScope(
+          observers: [if (kDebugMode) OwlScopeRiverpodObserver()],
+          child: const MyApp(),
+        ),
+      );
+    },
+    name: 'my-app',
+    host: _owlHost(),
+  );
+}
+```
+
+The `body` callback can be `async` — `owlscopeAuto` handles the Zone setup
+correctly. Anything inside (sync or async) is instrumented.
 
 ### 4. Run
 
