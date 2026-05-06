@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg-primary: #0d0d0d;
+  --bg-surface: #131313;
+  --bg-elevated: #1a1a1a;
+  --border-subtle: #2a2a2a;
+  --border-default: #333333;
+  --text-primary: #e5e5e5;
+  --text-secondary: #c4c4c4;
+  --text-muted: #888888;
+  --text-disabled: #555555;
+  --hover-bg: rgba(255, 255, 255, 0.04);
+  --selected-bg: rgba(59, 130, 246, 0.08);
+  --error-row-bg: rgba(239, 68, 68, 0.08);
+  --warn-row-bg: rgba(245, 158, 11, 0.05);
+  --owl-info: #60a5fa;
+  --owl-warn: #fbbf24;
+  --owl-error: #f87171;
+  --owl-debug: #c084fc;
+  --owl-success: #4ade80;
+  --owl-network: #c084fc;
+  --owl-event: #2dd4bf;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg-primary: #ffffff;
+  --bg-surface: #f8fafc;
+  --bg-elevated: #f1f5f9;
+  --border-subtle: #e5e7eb;
+  --border-default: #d1d5db;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-disabled: #94a3b8;
+  --hover-bg: rgba(15, 23, 42, 0.05);
+  --selected-bg: rgba(37, 99, 235, 0.10);
+  --error-row-bg: rgba(220, 38, 38, 0.08);
+  --warn-row-bg: rgba(217, 119, 6, 0.08);
+  --owl-info: #2563eb;
+  --owl-warn: #d97706;
+  --owl-error: #dc2626;
+  --owl-debug: #7c3aed;
+  --owl-success: #16a34a;
+  --owl-network: #7c3aed;
+  --owl-event: #0d9488;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-feature-settings: 'liga' 0;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+.titlebar-nodrag {
+  -webkit-app-region: no-drag;
+}
+
+.glow-dot {
+  box-shadow: 0 0 8px currentColor;
+}
+
+@layer utilities {
+  .row-hover:hover {
+    background-color: var(--hover-bg);
+  }
+  .row-selected {
+    background-color: var(--selected-bg);
+    box-shadow: inset 2px 0 0 var(--owl-info);
+  }
+  .row-error {
+    background-color: var(--error-row-bg);
+  }
+  .row-warn {
+    background-color: var(--warn-row-bg);
+  }
+}

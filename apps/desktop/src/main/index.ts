@@ -1,0 +1,80 @@
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { OwlScopeServer, type IncomingEvent } from './server.js';
+import { DEFAULT_PORT } from '@owlscope/protocol';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirnameLocal = dirname(__filename);
+
+let mainWindow: BrowserWindow | null = null;
+const wsServer = new OwlScopeServer(DEFAULT_PORT);
+
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 960,
+    minHeight: 600,
+    show: false,
+    autoHideMenuBar: true,
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    backgroundColor: '#0d0d0d',
+    webPreferences: {
+      preload: join(__dirnameLocal, '../preload/index.mjs'),
+      sandbox: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  mainWindow.on('ready-to-show', () => {
+    mainWindow?.show();
+  });
+
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: 'deny' };
+  });
+
+  if (process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
+  } else {
+    mainWindow.loadFile(join(__dirnameLocal, '../renderer/index.html'));
+  }
+}
+
+function forwardToRenderer(e: IncomingEvent) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send('owlscope:incoming', e);
+}
+
+app.whenReady().then(() => {
+  wsServer.start();
+  wsServer.onEvent(forwardToRenderer);
+
+  ipcMain.handle('owlscope:get-clients', () => wsServer.getConnectedClients());
+  ipcMain.handle('owlscope:get-server-status', () => wsServer.getStatus());
+  ipcMain.handle('owlscope:server:restart', () => {
+    wsServer.stop();
+    wsServer.start();
+    return true;
+  });
+
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('window-all-closed', () => {
+  wsServer.stop();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('before-quit', () => {
+  wsServer.stop();
+});

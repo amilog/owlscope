@@ -1,0 +1,23 @@
+name: owlscope_riverpod
+description: Riverpod adapter for OwlScope — forwards provider lifecycle and state changes to the OwlScope desktop app.
+version: 0.1.0
+homepage: https://github.com/amilog/owlscope
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ">=2.4.0 <3.0.0"
+  owlscope:
+    path: ../client-flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:

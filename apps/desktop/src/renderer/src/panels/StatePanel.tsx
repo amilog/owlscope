@@ -1,0 +1,73 @@
+import { useMemo, useRef, useEffect, useCallback } from 'react';
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import { useEventsStore, matchEvent } from '@/store/events';
+import { useUIStore } from '@/store/ui';
+import { LogRow } from '@/components/LogRow';
+import { InlineDetail } from '@/components/InlineDetail';
+import type { DebugEvent } from '@owlscope/protocol';
+
+const STATE_TYPES = new Set([
+  'state:change',
+  'redux:action',
+  'provider:change',
+  'bloc:transition',
+]);
+
+export function StatePanel() {
+  const events = useEventsStore((s) => s.events);
+  const filters = useEventsStore((s) => s.filters);
+  const selectedEventId = useEventsStore((s) => s.selectedEventId);
+  const selectEvent = useEventsStore((s) => s.selectEvent);
+  const order = useUIStore((s) => s.order);
+  const isPaused = useEventsStore((s) => s.isPaused);
+
+  const sorted = useMemo(() => {
+    const out = events.filter((e) => STATE_TYPES.has(e.type) && matchEvent(e, filters));
+    return order === 'newest-top' ? out.reverse() : out;
+  }, [events, filters, order]);
+
+  const ref = useRef<VirtuosoHandle | null>(null);
+  const lastLenRef = useRef(0);
+
+  useEffect(() => {
+    if (isPaused) {
+      lastLenRef.current = sorted.length;
+      return;
+    }
+    if (sorted.length > lastLenRef.current && order === 'newest-top') {
+      ref.current?.scrollToIndex({ index: 0, behavior: 'auto' });
+    }
+    lastLenRef.current = sorted.length;
+  }, [sorted.length, order, isPaused]);
+
+  const toggleSelect = useCallback(
+    (id: string) => selectEvent(selectedEventId === id ? null : id),
+    [selectedEventId, selectEvent],
+  );
+
+  if (sorted.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-text-muted text-xs">
+        No state changes captured yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 min-h-0">
+      <Virtuoso
+        ref={ref}
+        style={{ height: '100%' }}
+        data={sorted}
+        computeItemKey={(_index, ev: DebugEvent) => ev.id}
+        followOutput={order === 'newest-bottom' && !isPaused ? 'auto' : false}
+        itemContent={(_index, ev) => (
+          <div>
+            <LogRow event={ev} selected={ev.id === selectedEventId} onSelect={toggleSelect} />
+            {ev.id === selectedEventId && <InlineDetail event={ev} />}
+          </div>
+        )}
+      />
+    </div>
+  );
+}

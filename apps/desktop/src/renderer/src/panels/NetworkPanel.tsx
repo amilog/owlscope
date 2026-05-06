@@ -1,0 +1,84 @@
+import { useMemo, useRef, useEffect, useCallback } from 'react';
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import { useEventsStore, matchEvent } from '@/store/events';
+import { useUIStore } from '@/store/ui';
+import { NetworkRow } from '@/components/NetworkRow';
+import { InlineDetail } from '@/components/InlineDetail';
+import type { DebugEvent } from '@owlscope/protocol';
+
+export function NetworkPanel() {
+  const events = useEventsStore((s) => s.events);
+  const filters = useEventsStore((s) => s.filters);
+  const selectedEventId = useEventsStore((s) => s.selectedEventId);
+  const selectEvent = useEventsStore((s) => s.selectEvent);
+  const order = useUIStore((s) => s.order);
+  const isPaused = useEventsStore((s) => s.isPaused);
+
+  const sorted = useMemo(() => {
+    const out = events.filter(
+      (e) =>
+        (e.type === 'network:request' || e.type === 'network:response') &&
+        matchEvent(e, filters),
+    );
+    return order === 'newest-top' ? out.reverse() : out;
+  }, [events, filters, order]);
+
+  const ref = useRef<VirtuosoHandle | null>(null);
+  const lastLenRef = useRef(0);
+
+  useEffect(() => {
+    if (isPaused) {
+      lastLenRef.current = sorted.length;
+      return;
+    }
+    if (sorted.length > lastLenRef.current && order === 'newest-top') {
+      ref.current?.scrollToIndex({ index: 0, behavior: 'auto' });
+    }
+    lastLenRef.current = sorted.length;
+  }, [sorted.length, order, isPaused]);
+
+  const toggleSelect = useCallback(
+    (id: string) => selectEvent(selectedEventId === id ? null : id),
+    [selectedEventId, selectEvent],
+  );
+
+  if (sorted.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-text-muted text-xs">
+        No network requests captured yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 min-h-0 flex flex-col">
+      <div className="h-7 shrink-0 flex items-center gap-2 px-3 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface">
+        <span className="w-[68px] shrink-0">Time</span>
+        <span className="w-12 shrink-0">Method</span>
+        <span className="w-12 shrink-0">Status</span>
+        <span className="w-32 shrink-0">Host</span>
+        <span className="flex-1">Path</span>
+        <span className="w-14 shrink-0 text-right">Time</span>
+      </div>
+      <div className="flex-1 min-h-0">
+        <Virtuoso
+          ref={ref}
+          style={{ height: '100%' }}
+          data={sorted}
+          computeItemKey={(_index, ev: DebugEvent) => ev.id}
+          followOutput={order === 'newest-bottom' && !isPaused ? 'auto' : false}
+          itemContent={(_index, ev) => (
+            <div>
+              <NetworkRow
+                event={ev}
+                selected={ev.id === selectedEventId}
+                onSelect={toggleSelect}
+              />
+              {ev.id === selectedEventId && <InlineDetail event={ev} />}
+            </div>
+          )}
+        />
+      </div>
+    </div>
+  );
+}
