@@ -1,12 +1,14 @@
 import { useMemo, useRef, useEffect, useCallback } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import { useEventsStore, matchSearch } from '@/store/events';
+import { useEventsStore, matchEvent } from '@/store/events';
 import { useUIStore } from '@/store/ui';
 import { LogRow } from '@/components/LogRow';
 import { InlineDetail } from '@/components/InlineDetail';
 import type { DebugEvent } from '@owlscope/protocol';
 
-export function LogsPanel() {
+/** Catch-all view: every event from every client, filtered by the toolbar
+ *  search/level pills. The other panels are typed slices of this stream. */
+export function TimelinePanel() {
   const events = useEventsStore((s) => s.events);
   const filters = useEventsStore((s) => s.filters);
   const selectedEventId = useEventsStore((s) => s.selectedEventId);
@@ -15,11 +17,7 @@ export function LogsPanel() {
   const isPaused = useEventsStore((s) => s.isPaused);
 
   const sorted = useMemo(() => {
-    const out = events.filter(
-      (e) =>
-        (e.type === 'console' || e.type === 'error' || e.level !== undefined) &&
-        matchSearch(e, filters),
-    );
+    const out = events.filter((e) => matchEvent(e, filters));
     return order === 'newest-top' ? out.reverse() : out;
   }, [events, filters, order]);
 
@@ -31,10 +29,8 @@ export function LogsPanel() {
       lastLenRef.current = sorted.length;
       return;
     }
-    if (sorted.length > lastLenRef.current) {
-      if (order === 'newest-top') {
-        ref.current?.scrollToIndex({ index: 0, behavior: 'auto' });
-      }
+    if (sorted.length > lastLenRef.current && order === 'newest-top') {
+      ref.current?.scrollToIndex({ index: 0, behavior: 'auto' });
     }
     lastLenRef.current = sorted.length;
   }, [sorted.length, order, isPaused]);

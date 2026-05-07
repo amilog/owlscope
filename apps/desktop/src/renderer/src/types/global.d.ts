@@ -14,6 +14,7 @@ declare global {
       getClients: () => Promise<ConnectedClient[]>;
       getServerStatus: () => Promise<{ running: boolean; port: number; address: string }>;
       restartServer: () => Promise<boolean>;
+      setAlwaysOnTop: (value: boolean) => Promise<boolean>;
     };
   }
 }

@@ -3,11 +3,13 @@ import { TitleBar } from '@/components/TitleBar';
 import { Sidebar } from '@/components/Sidebar';
 import { Toolbar } from '@/components/Toolbar';
 import { StatusBar } from '@/components/StatusBar';
+import { HomePanel } from '@/panels/HomePanel';
 import { LogsPanel } from '@/panels/LogsPanel';
 import { NetworkPanel } from '@/panels/NetworkPanel';
 import { ErrorsPanel } from '@/panels/ErrorsPanel';
 import { PerformancePanel } from '@/panels/PerformancePanel';
 import { StatePanel } from '@/panels/StatePanel';
+import { TimelinePanel } from '@/panels/TimelinePanel';
 import { useEventsStore } from '@/store/events';
 import { useClientsStore } from '@/store/clients';
 import { useUIStore } from '@/store/ui';
@@ -24,6 +26,14 @@ export default function App() {
   const removeClient = useClientsStore((s) => s.removeClient);
   const setServerStatus = useClientsStore((s) => s.setServerStatus);
   const activePanel = useUIStore((s) => s.activePanel);
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
+
+  useEffect(() => {
+    const apply = () => setSidebarCollapsed(window.innerWidth < 520);
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
+  }, [setSidebarCollapsed]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.owlscope) return;
@@ -76,7 +86,11 @@ export default function App() {
           <Toolbar />
           <div className="flex-1 min-h-0 flex">
             <div className="flex-1 min-w-0 flex flex-col">
-              {activePanel === 'logs' ? (
+              {activePanel === 'home' ? (
+                <HomePanel />
+              ) : activePanel === 'timeline' ? (
+                <TimelinePanel />
+              ) : activePanel === 'logs' ? (
                 <LogsPanel />
               ) : activePanel === 'network' ? (
                 <NetworkPanel />
@@ -84,19 +98,8 @@ export default function App() {
                 <ErrorsPanel />
               ) : activePanel === 'performance' ? (
                 <PerformancePanel />
-              ) : activePanel === 'state' ? (
-                <StatePanel />
               ) : (
-                <div className="flex-1 flex items-center justify-center text-text-muted text-xs">
-                  <div className="text-center">
-                    <div className="uppercase tracking-wider text-[10px] mb-1 text-text-muted">
-                      Coming soon
-                    </div>
-                    <div className="text-text-secondary">
-                      The {activePanel} panel will land in the next milestone.
-                    </div>
-                  </div>
-                </div>
+                <StatePanel />
               )}
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useEventsStore } from '@/store/events';
 import { useClientsStore } from '@/store/clients';
+import { useUIStore } from '@/store/ui';
 
 function formatRelative(ts: number, now: number): string {
   const diff = Math.max(0, now - ts) / 1000;
@@ -31,17 +32,24 @@ export function StatusBar() {
       ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
       : null;
   const clientCount = Object.keys(clients).length;
+  const narrow = useUIStore((s) => s.sidebarCollapsed);
 
   return (
-    <div className="h-7 shrink-0 bg-bg-surface border-t border-border-subtle px-3 flex items-center justify-between text-[11px] text-text-muted">
-      <div className="flex items-center gap-4">
-        <span>{total} events</span>
-        <span>{networkCount} requests</span>
+    <div className="h-7 shrink-0 bg-bg-surface border-t border-border-subtle px-3 flex items-center justify-between gap-3 text-[11px] text-text-muted">
+      <div className={`flex items-center min-w-0 ${narrow ? 'gap-2' : 'gap-4'}`}>
+        <span>{narrow ? `${total} ev` : `${total} events`}</span>
+        <span>{narrow ? `${networkCount} req` : `${networkCount} requests`}</span>
         {avgDuration !== null && <span>avg {avgDuration}ms</span>}
-        <span>{clientCount} clients</span>
+        {!narrow && <span>{clientCount} clients</span>}
       </div>
-      <div>{last ? `last event ${formatRelative(last.timestamp, now)}` : 'idle'}</div>
-      <div>OwlScope v0.1.0</div>
+      <div className="truncate">
+        {last
+          ? narrow
+            ? formatRelative(last.timestamp, now)
+            : `last event ${formatRelative(last.timestamp, now)}`
+          : 'idle'}
+      </div>
+      {!narrow && <div className="shrink-0">OwlScope v0.1.0</div>}
     </div>
   );
 }

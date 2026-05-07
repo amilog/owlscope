@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import type { DebugEvent, LogLevel } from '@owlscope/protocol';
+import { useUIStore } from '@/store/ui';
 
 const levelColor: Record<LogLevel, string> = {
   log: 'text-text-secondary',
@@ -29,6 +30,18 @@ const typeColor: Record<string, string> = {
 function formatTime(ts: number) {
   const d = new Date(ts);
   return d.toTimeString().slice(0, 8) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+}
+
+function formatTimeShort(ts: number) {
+  return new Date(ts).toTimeString().slice(0, 8);
+}
+
+/** A short tag for the type column when there's no room for the full name —
+ *  picks the first segment so `state:change` / `network:request` are still
+ *  recognisable, and clamps to a fixed width. */
+function shortType(t: string): string {
+  const seg = t.split(':')[0];
+  return seg.length > 6 ? seg.slice(0, 6) : seg;
 }
 
 function formatStateShort(v: unknown): string {
@@ -135,11 +148,13 @@ interface LogRowProps {
 }
 
 function LogRowImpl({ event, selected, onSelect }: LogRowProps) {
+  const narrow = useUIStore((s) => s.sidebarCollapsed);
   const isError = event.type === 'error' || event.level === 'error';
   const isWarn = event.level === 'warn';
 
   const rowClass = [
-    'flex items-center gap-2 h-6 px-3 text-[11px] cursor-pointer border-b border-border-subtle/40',
+    'flex items-center gap-2 h-6 text-[11px] cursor-pointer border-b border-border-subtle/40',
+    narrow ? 'px-2' : 'px-3',
     selected ? 'row-selected' : 'row-hover',
     isError ? 'row-error' : '',
     isWarn ? 'row-warn' : '',
@@ -149,21 +164,28 @@ function LogRowImpl({ event, selected, onSelect }: LogRowProps) {
 
   return (
     <div className={rowClass} onClick={() => onSelect(event.id)}>
-      <span className="w-[68px] shrink-0 text-text-muted tabular-nums">
-        {formatTime(event.timestamp)}
+      <span
+        className={`shrink-0 overflow-hidden text-text-muted tabular-nums ${
+          narrow ? 'w-[60px]' : 'w-[92px]'
+        }`}
+      >
+        {narrow ? formatTimeShort(event.timestamp) : formatTime(event.timestamp)}
       </span>
       <span
-        className={`w-[88px] shrink-0 truncate ${typeColor[event.type] ?? 'text-text-secondary'}`}
+        className={`shrink-0 truncate ${typeColor[event.type] ?? 'text-text-secondary'} ${
+          narrow ? 'w-[52px]' : 'w-[92px]'
+        }`}
+        title={event.type}
       >
-        {event.type}
+        {narrow ? shortType(event.type) : event.type}
       </span>
-      {event.level && (
+      {event.level && !narrow && (
         <span className={`w-12 shrink-0 ${levelColor[event.level]}`}>
           {event.level}
         </span>
       )}
-      <span className="flex-1 truncate text-text-primary">{summarize(event)}</span>
-      {event.meta?.duration !== undefined && (
+      <span className="flex-1 min-w-0 truncate text-text-primary">{summarize(event)}</span>
+      {event.meta?.duration !== undefined && !narrow && (
         <span className="w-12 shrink-0 text-right text-text-muted tabular-nums">
           {Math.round(event.meta.duration)}ms
         </span>

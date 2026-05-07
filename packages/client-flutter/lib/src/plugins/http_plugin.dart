@@ -6,7 +6,15 @@ import '../client.dart';
 import '../events.dart';
 import '../plugin.dart';
 
-const _maxBodyBytes = 64 * 1024;
+/// Default cap for captured HTTP request/response bodies. 16 MiB handles
+/// every realistic dev API response without truncation. Override via
+/// `HttpPlugin(maxBodyBytes: ...)` or pass `0` for unlimited (use with care
+/// — a multi-GB stream will buffer entirely in memory).
+const defaultMaxBodyBytes = 16 * 1024 * 1024;
+
+bool _isUnlimited(int cap) => cap <= 0;
+bool _hasRoom(int currentLen, int cap) => _isUnlimited(cap) || currentLen < cap;
+int _capTake(int cap, int len) => _isUnlimited(cap) ? len : cap;
 
 class HttpPlugin implements OwlScopePlugin {
   @override
@@ -16,7 +24,14 @@ class HttpPlugin implements OwlScopePlugin {
 
   final List<Pattern> ignore;
 
-  HttpPlugin({this.ignore = const []});
+  /// Maximum bytes captured for any single request or response body. Pass
+  /// `0` for unlimited. Defaults to [defaultMaxBodyBytes] (16 MiB).
+  final int maxBodyBytes;
+
+  HttpPlugin({
+    this.ignore = const [],
+    this.maxBodyBytes = defaultMaxBodyBytes,
+  });
 
   @override
   void install(OwlScope client) {
@@ -30,7 +45,7 @@ class HttpPlugin implements OwlScopePlugin {
       ...ignore,
     ];
     HttpOverrides.global =
-        _OwlHttpOverrides(client, _previousOverrides, effectiveIgnore);
+        _OwlHttpOverrides(client, _previousOverrides, effectiveIgnore, maxBodyBytes);
   }
 
   @override
@@ -43,12 +58,13 @@ class _OwlHttpOverrides extends HttpOverrides {
   final OwlScope client;
   final HttpOverrides? previous;
   final List<Pattern> ignore;
-  _OwlHttpOverrides(this.client, this.previous, this.ignore);
+  final int maxBodyBytes;
+  _OwlHttpOverrides(this.client, this.previous, this.ignore, this.maxBodyBytes);
 
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     final inner = previous?.createHttpClient(context) ?? super.createHttpClient(context);
-    return _OwlHttpClient(inner, client, ignore);
+    return _OwlHttpClient(inner, client, ignore, maxBodyBytes);
   }
 }
 
@@ -72,14 +88,15 @@ class _OwlHttpClient implements HttpClient {
   final HttpClient _inner;
   final OwlScope _client;
   final List<Pattern> _ignore;
+  final int _maxBodyBytes;
 
-  _OwlHttpClient(this._inner, this._client, this._ignore);
+  _OwlHttpClient(this._inner, this._client, this._ignore, this._maxBodyBytes);
 
   @override
   Future<HttpClientRequest> openUrl(String method, Uri url) async {
     final req = await _inner.openUrl(method, url);
     if (_shouldIgnore(url.toString(), _ignore)) return req;
-    return _OwlHttpClientRequest(req, _client, method.toUpperCase(), url);
+    return _OwlHttpClientRequest(req, _client, method.toUpperCase(), url, _maxBodyBytes);
   }
 
   // Forward all other methods to inner — these typically end up calling openUrl.
@@ -184,11 +201,18 @@ class _OwlHttpClientRequest implements HttpClientRequest {
   final OwlScope _client;
   final String _method;
   final Uri _url;
+  final int _maxBodyBytes;
   final Stopwatch _sw = Stopwatch()..start();
   final int _startedAt = DateTime.now().millisecondsSinceEpoch;
   final List<int> _bodyBuffer = [];
 
-  _OwlHttpClientRequest(this._inner, this._client, this._method, this._url);
+  _OwlHttpClientRequest(
+    this._inner,
+    this._client,
+    this._method,
+    this._url,
+    this._maxBodyBytes,
+  );
 
   Map<String, String> _captureRequestHeaders() {
     final out = <String, String>{};
@@ -205,7 +229,9 @@ class _OwlHttpClientRequest implements HttpClientRequest {
         ? null
         : (() {
             try {
-              return utf8.decode(_bodyBuffer.take(_maxBodyBytes).toList());
+              return utf8.decode(
+                _bodyBuffer.take(_capTake(_maxBodyBytes, _bodyBuffer.length)).toList(),
+              );
             } catch (_) {
               return '[Binary body: ${_bodyBuffer.length} bytes]';
             }
@@ -245,7 +271,7 @@ class _OwlHttpClientRequest implements HttpClientRequest {
     final controller = StreamController<List<int>>();
     response.listen(
       (chunk) {
-        if (bytes.length < _maxBodyBytes) {
+        if (_hasRoom(bytes.length, _maxBodyBytes)) {
           bytes.addAll(chunk);
         }
         controller.add(chunk);
@@ -295,14 +321,14 @@ class _OwlHttpClientRequest implements HttpClientRequest {
 
   @override
   void add(List<int> data) {
-    if (_bodyBuffer.length < _maxBodyBytes) _bodyBuffer.addAll(data);
+    if (_hasRoom(_bodyBuffer.length, _maxBodyBytes)) _bodyBuffer.addAll(data);
     _inner.add(data);
   }
 
   @override
   Future<dynamic> addStream(Stream<List<int>> stream) {
     return stream.listen((chunk) {
-      if (_bodyBuffer.length < _maxBodyBytes) _bodyBuffer.addAll(chunk);
+      if (_hasRoom(_bodyBuffer.length, _maxBodyBytes)) _bodyBuffer.addAll(chunk);
       _inner.add(chunk);
     }).asFuture<void>();
   }
@@ -311,7 +337,7 @@ class _OwlHttpClientRequest implements HttpClientRequest {
   void write(Object? object) {
     final s = object?.toString() ?? '';
     final bytes = utf8.encode(s);
-    if (_bodyBuffer.length < _maxBodyBytes) _bodyBuffer.addAll(bytes);
+    if (_hasRoom(_bodyBuffer.length, _maxBodyBytes)) _bodyBuffer.addAll(bytes);
     _inner.write(object);
   }
 

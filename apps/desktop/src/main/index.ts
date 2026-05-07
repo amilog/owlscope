@@ -14,8 +14,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    minWidth: 960,
-    minHeight: 600,
+    minWidth: 320,
+    minHeight: 240,
     show: false,
     autoHideMenuBar: true,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
@@ -59,6 +59,11 @@ app.whenReady().then(() => {
     wsServer.stop();
     wsServer.start();
     return true;
+  });
+  ipcMain.handle('owlscope:set-always-on-top', (_e, value: boolean) => {
+    if (!mainWindow || mainWindow.isDestroyed()) return false;
+    mainWindow.setAlwaysOnTop(value, 'floating');
+    return mainWindow.isAlwaysOnTop();
   });
 
   createWindow();

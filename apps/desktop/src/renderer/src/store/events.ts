@@ -5,6 +5,11 @@ const MAX_EVENTS = 50_000;
 
 export interface Filters {
   types: Set<EventType>;
+  /** Event types the user has toggled off via the Timeline type pills.
+   *  Default empty — every type visible. Only matchEvent (Timeline) checks
+   *  this; per-panel filters (matchSearch) ignore it so a hidden type on
+   *  Timeline doesn't silently empty the Network/State/Performance panels. */
+  excludedTypes: Set<string>;
   levels: Set<LogLevel>;
   search: string;
   clientId: string | null;
@@ -23,6 +28,7 @@ interface EventsState {
   togglePause: () => void;
   setSearch: (search: string) => void;
   toggleType: (type: EventType) => void;
+  toggleTypeGroup: (types: string[]) => void;
   toggleLevel: (level: LogLevel) => void;
   setClientFilter: (clientId: string | null) => void;
   resetFilters: () => void;
@@ -34,6 +40,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
   isPaused: false,
   filters: {
     types: new Set<EventType>(),
+    excludedTypes: new Set<string>(),
     levels: new Set<LogLevel>(),
     search: '',
     clientId: null,
@@ -74,6 +81,17 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       return { filters: { ...s.filters, types } };
     }),
 
+  /** Toggle a group of event types as visible/hidden in the Timeline. If any
+   *  of the group is currently visible, hide them all; otherwise re-show them. */
+  toggleTypeGroup: (groupTypes) =>
+    set((s) => {
+      const next = new Set(s.filters.excludedTypes);
+      const allHidden = groupTypes.every((t) => next.has(t));
+      if (allHidden) groupTypes.forEach((t) => next.delete(t));
+      else groupTypes.forEach((t) => next.add(t));
+      return { filters: { ...s.filters, excludedTypes: next } };
+    }),
+
   toggleLevel: (level) =>
     set((s) => {
       const levels = new Set(s.filters.levels);
@@ -87,7 +105,13 @@ export const useEventsStore = create<EventsState>((set, get) => ({
 
   resetFilters: () =>
     set({
-      filters: { types: new Set(), levels: new Set(), search: '', clientId: null },
+      filters: {
+        types: new Set(),
+        excludedTypes: new Set(),
+        levels: new Set(),
+        search: '',
+        clientId: null,
+      },
     }),
 }));
 
@@ -104,11 +128,9 @@ export function compileSearch(search: string): RegExp | string | null {
   return search.toLowerCase();
 }
 
-export function matchEvent(event: DebugEvent, filters: Filters): boolean {
+/** Search + client + type checks. Used by every panel. */
+function matchSearchAndClient(event: DebugEvent, filters: Filters): boolean {
   if (filters.types.size > 0 && !filters.types.has(event.type)) return false;
-  if (filters.levels.size > 0) {
-    if (!event.level || !filters.levels.has(event.level)) return false;
-  }
   if (filters.clientId && event.clientId !== filters.clientId) return false;
   if (filters.search) {
     const compiled = compileSearch(filters.search);
@@ -122,4 +144,21 @@ export function matchEvent(event: DebugEvent, filters: Filters): boolean {
     }
   }
   return true;
+}
+
+/** Full match including level + type pills. Used by Timeline. Both pill
+ *  sets hold the selections the user has *toggled off* — default empty
+ *  means everything is visible. Events without a level (Network, State,
+ *  Performance) bypass the level pills. */
+export function matchEvent(event: DebugEvent, filters: Filters): boolean {
+  if (!matchSearchAndClient(event, filters)) return false;
+  if (event.level && filters.levels.has(event.level)) return false;
+  if (filters.excludedTypes.has(event.type)) return false;
+  return true;
+}
+
+/** Filter without the level pills — for panels whose events have no
+ *  `level` (Network, State, Performance). */
+export function matchSearch(event: DebugEvent, filters: Filters): boolean {
+  return matchSearchAndClient(event, filters);
 }

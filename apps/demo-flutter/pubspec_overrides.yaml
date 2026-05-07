@@ -1,6 +1,0 @@
-# Local development overrides — ignored on publish.
-dependency_overrides:
-  owlscope:
-    path: ../../packages/client-flutter
-  owlscope_riverpod:
-    path: ../../packages/adapter-riverpod

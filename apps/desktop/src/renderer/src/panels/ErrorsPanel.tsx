@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect, useCallback } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import { useEventsStore, matchEvent } from '@/store/events';
+import { useEventsStore, matchSearch } from '@/store/events';
 import { useUIStore } from '@/store/ui';
 import { LogRow } from '@/components/LogRow';
 import { InlineDetail } from '@/components/InlineDetail';
@@ -16,7 +16,7 @@ export function ErrorsPanel() {
 
   const sorted = useMemo(() => {
     const out = events.filter(
-      (e) => (e.type === 'error' || e.level === 'error') && matchEvent(e, filters),
+      (e) => (e.type === 'error' || e.level === 'error') && matchSearch(e, filters),
     );
     return order === 'newest-top' ? out.reverse() : out;
   }, [events, filters, order]);

@@ -16,6 +16,10 @@ void owlscopeAuto(
   String name = 'flutter-app',
   String host = 'localhost',
   int port = 9090,
+  // Per-body capture cap for the HTTP plugin. Defaults to 16 MiB. Pass `0`
+  // for unlimited — useful when debugging huge JSON payloads, but a runaway
+  // download will buffer entirely in memory.
+  int httpMaxBodyBytes = defaultMaxBodyBytes,
 }) {
   OwlScopeRunner.guard(() {
     if (kReleaseMode) {
@@ -37,7 +41,7 @@ void owlscopeAuto(
       ),
     )
       ..use(ErrorPlugin())
-      ..use(HttpPlugin())
+      ..use(HttpPlugin(maxBodyBytes: httpMaxBodyBytes))
       ..use(PerformancePlugin())
       ..use(NavigationPlugin(owlscopeNavigatorObserver));
 

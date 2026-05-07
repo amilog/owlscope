@@ -49,7 +49,10 @@ export class OwlScopeServer {
 
   start() {
     if (this.wss) return;
-    this.wss = new WebSocketServer({ port: this.port, host: '127.0.0.1' });
+    // Bind to all interfaces so LAN devices (physical iPhones / Android phones
+     // / second machines) can connect. macOS may prompt "Allow incoming
+     // connections" the first time — accept it.
+    this.wss = new WebSocketServer({ port: this.port, host: '0.0.0.0' });
 
     this.wss.on('listening', () => {
       this.running = true;

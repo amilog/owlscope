@@ -8,10 +8,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:desktop": "npm run dev -w @owlscope/desktop",
-    "dev:demo": "npm run dev -w @owlscope/demo-react",
+    "dev": "npm run dev -w @owlscope/desktop",
     "build:sdk": "npm run build -w owlscope",
-    "build:desktop": "npm run build -w @owlscope/desktop",
     "build": "npm run build -w @owlscope/protocol && npm run build -w owlscope && npm run build -w @owlscope/desktop",
     "clean": "rimraf 'apps/*/out' 'apps/*/dist' 'packages/*/dist'"
   },

@@ -1,11 +1,23 @@
-import { Moon, Sun } from 'lucide-react';
+import { useEffect } from 'react';
+import { Moon, Pin, PinOff, Sun } from 'lucide-react';
 import { useClientsStore } from '@/store/clients';
 import { useThemeStore } from '@/store/theme';
+import { useUIStore } from '@/store/ui';
 
 export function TitleBar() {
   const { serverRunning, serverAddress, clients } = useClientsStore();
   const theme = useThemeStore((s) => s.theme);
   const toggle = useThemeStore((s) => s.toggle);
+  const alwaysOnTop = useUIStore((s) => s.alwaysOnTop);
+  const toggleAlwaysOnTop = useUIStore((s) => s.toggleAlwaysOnTop);
+
+  useEffect(() => {
+    if (alwaysOnTop && typeof window !== 'undefined' && window.owlscope) {
+      window.owlscope.setAlwaysOnTop(true).catch(() => {});
+    }
+  }, [alwaysOnTop]);
+
+  const narrow = useUIStore((s) => s.sidebarCollapsed);
 
   const clientCount = Object.keys(clients).length;
   const sessionLabel =
@@ -16,15 +28,20 @@ export function TitleBar() {
         : `${clientCount} clients`;
 
   return (
-    <div className="titlebar-drag h-10 flex items-center justify-between px-4 bg-bg-surface border-b border-border-subtle text-xs select-none">
-      <div className="w-32" />
-      <div className="flex items-center gap-2 text-text-secondary">
-        <img src="/logo.png" alt="OwlScope" className="w-5 h-5" draggable={false} />
-        <span className="font-semibold text-text-primary">OwlScope</span>
-        <span className="text-text-muted">·</span>
-        <span>{sessionLabel}</span>
+    <div className="titlebar-drag h-10 shrink-0 flex items-center justify-between gap-2 pl-20 pr-3 bg-bg-surface border-b border-border-subtle text-xs select-none">
+      <div className="flex items-center gap-2 text-text-secondary min-w-0 flex-1">
+        <span className="truncate">{narrow && clientCount === 0 ? 'idle' : sessionLabel}</span>
       </div>
-      <div className="titlebar-nodrag flex items-center gap-3 text-text-muted">
+      <div className="titlebar-nodrag flex items-center gap-2.5 text-text-muted shrink-0">
+        <button
+          onClick={() => void toggleAlwaysOnTop()}
+          className={`transition-colors ${
+            alwaysOnTop ? 'text-purple-400 hover:text-purple-300' : 'hover:text-text-primary'
+          }`}
+          title={alwaysOnTop ? 'Pinned on top — click to unpin' : 'Pin window on top'}
+        >
+          {alwaysOnTop ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
+        </button>
         <button
           onClick={toggle}
           className="hover:text-text-primary transition-colors"
@@ -37,11 +54,12 @@ export function TitleBar() {
           )}
         </button>
         <span
+          title={serverAddress}
           className={`w-2 h-2 rounded-full glow-dot ${
             serverRunning ? 'bg-owl-success text-owl-success' : 'bg-owl-error text-owl-error'
           }`}
         />
-        <span>{serverAddress}</span>
+        {!narrow && <span className="truncate">{serverAddress}</span>}
       </div>
     </div>
   );

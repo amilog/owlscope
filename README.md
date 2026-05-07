@@ -108,9 +108,7 @@ Side-by-side **Previous** vs **Next** with copy buttons on each. Works for Redux
 ```
 owlscope/
 ├── apps/
-│   ├── desktop/           Electron desktop app (UI + WS server)
-│   ├── demo-react/        Browser demo
-│   └── demo-flutter/      Flutter demo (macOS / iOS / Android)
+│   └── desktop/           Electron desktop app (UI + WS server)
 └── packages/
     ├── protocol/          Shared event protocol (TS types)
     ├── client-js/         JavaScript SDK (npm: owlscope)
@@ -143,17 +141,16 @@ owlscope/
 
 ```bash
 npm install                    # install all workspace deps
-
-npm run dev:desktop            # terminal 1 — Electron app
-npm run dev:demo               # terminal 2 — browser demo
-
-# Flutter demo:
-cd apps/demo-flutter
-flutter pub get
-flutter run -d macos           # or -d chrome / iPhone / Android
+npm run dev                    # Electron app (renderer on http://localhost:5180)
 ```
 
-The desktop renderer dev server runs on `http://localhost:5180` (don't open in browser — it's used internally by Electron). Browser demo runs on `http://localhost:5173`.
+To wire a Flutter app against the local SDK, depend on the package via `path:`:
+
+```yaml
+dependencies:
+  owlscope:
+    path: ../../path/to/owlscope/packages/client-flutter
+```
 
 ---
 

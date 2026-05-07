@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 export type PanelKey =
+  | 'home'
   | 'logs'
   | 'network'
   | 'state'
@@ -11,6 +12,7 @@ export type PanelKey =
 export type EventOrder = 'newest-bottom' | 'newest-top';
 
 const ORDER_KEY = 'owlscope.eventOrder';
+const PIN_KEY = 'owlscope.alwaysOnTop';
 
 function loadOrder(): EventOrder {
   try {
@@ -22,17 +24,31 @@ function loadOrder(): EventOrder {
   return 'newest-bottom';
 }
 
+function loadPin(): boolean {
+  try {
+    return localStorage.getItem(PIN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 interface UIState {
   activePanel: PanelKey;
   order: EventOrder;
+  alwaysOnTop: boolean;
+  sidebarCollapsed: boolean;
   setPanel: (p: PanelKey) => void;
   setOrder: (o: EventOrder) => void;
   toggleOrder: () => void;
+  toggleAlwaysOnTop: () => Promise<void>;
+  setSidebarCollapsed: (v: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
-  activePanel: 'logs',
+  activePanel: 'home',
   order: loadOrder(),
+  alwaysOnTop: loadPin(),
+  sidebarCollapsed: false,
   setPanel: (p) => set({ activePanel: p }),
   setOrder: (order) => {
     try {
@@ -52,4 +68,18 @@ export const useUIStore = create<UIState>((set, get) => ({
     }
     set({ order: next });
   },
+  toggleAlwaysOnTop: async () => {
+    const next = !get().alwaysOnTop;
+    const applied =
+      typeof window !== 'undefined' && window.owlscope
+        ? await window.owlscope.setAlwaysOnTop(next)
+        : next;
+    try {
+      localStorage.setItem(PIN_KEY, applied ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+    set({ alwaysOnTop: applied });
+  },
+  setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
 }));

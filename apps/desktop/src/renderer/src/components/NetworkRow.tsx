@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import type { DebugEvent } from '@owlscope/protocol';
+import { useUIStore } from '@/store/ui';
 
 interface NetworkPayload {
   method?: string;
@@ -15,6 +16,10 @@ interface NetworkPayload {
 function formatTime(ts: number) {
   const d = new Date(ts);
   return d.toTimeString().slice(0, 8) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+}
+
+function formatTimeShort(ts: number) {
+  return new Date(ts).toTimeString().slice(0, 8);
 }
 
 function statusColor(status?: number, error?: string): string {
@@ -50,11 +55,13 @@ interface Props {
 }
 
 function NetworkRowImpl({ event, selected, onSelect }: Props) {
+  const narrow = useUIStore((s) => s.sidebarCollapsed);
   const p = event.payload as NetworkPayload;
   const isError = !!p.error || p.status === 0;
 
   const rowClass = [
-    'flex items-center gap-2 h-7 px-3 text-[11px] cursor-pointer border-b border-border-subtle/40',
+    'flex items-center gap-2 h-7 text-[11px] cursor-pointer border-b border-border-subtle/40',
+    narrow ? 'px-2' : 'px-3',
     selected ? 'row-selected' : 'row-hover',
     isError ? 'row-error' : '',
   ]
@@ -63,21 +70,29 @@ function NetworkRowImpl({ event, selected, onSelect }: Props) {
 
   return (
     <div className={rowClass} onClick={() => onSelect(event.id)}>
-      <span className="w-[68px] shrink-0 text-text-muted tabular-nums">
-        {formatTime(event.timestamp)}
+      <span
+        className={`shrink-0 overflow-hidden text-text-muted tabular-nums ${
+          narrow ? 'w-[60px]' : 'w-[92px]'
+        }`}
+      >
+        {narrow ? formatTimeShort(event.timestamp) : formatTime(event.timestamp)}
       </span>
       <span className="w-12 shrink-0 text-owl-network font-medium">{p.method ?? 'GET'}</span>
       <span className={`w-12 shrink-0 tabular-nums ${statusColor(p.status, p.error)}`}>
         {p.error ? 'ERR' : (p.status ?? '–')}
       </span>
-      <span className="w-32 shrink-0 truncate text-text-muted">{host(p.url ?? '')}</span>
-      <span className="flex-1 truncate text-text-primary">
+      {!narrow && (
+        <span className="w-32 shrink-0 truncate text-text-muted">{host(p.url ?? '')}</span>
+      )}
+      <span className="flex-1 min-w-0 truncate text-text-primary">
         {shortenUrl(p.url ?? '')}
         {p.error && <span className="ml-2 text-owl-error">{p.error}</span>}
       </span>
-      <span className="w-14 shrink-0 text-right text-text-muted tabular-nums">
-        {p.duration !== undefined ? `${Math.round(p.duration)}ms` : '–'}
-      </span>
+      {!narrow && (
+        <span className="w-14 shrink-0 text-right text-text-muted tabular-nums">
+          {p.duration !== undefined ? `${Math.round(p.duration)}ms` : '–'}
+        </span>
+      )}
     </div>
   );
 }

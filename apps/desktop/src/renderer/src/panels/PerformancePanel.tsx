@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect, useCallback } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import { useEventsStore, matchEvent } from '@/store/events';
+import { useEventsStore, matchSearch } from '@/store/events';
 import { useUIStore } from '@/store/ui';
 import { InlineDetail } from '@/components/InlineDetail';
 import type { DebugEvent } from '@owlscope/protocol';
@@ -62,7 +62,7 @@ function PerfRow({
 
   return (
     <div className={rowClass} onClick={() => onSelect(event.id)}>
-      <span className="w-[68px] shrink-0 text-text-muted tabular-nums">
+      <span className="w-[92px] shrink-0 text-text-muted tabular-nums">
         {formatTime(event.timestamp)}
       </span>
       <span className="w-24 shrink-0 text-owl-info">
@@ -87,7 +87,7 @@ export function PerformancePanel() {
   const isPaused = useEventsStore((s) => s.isPaused);
 
   const sorted = useMemo(() => {
-    const out = events.filter((e) => e.type === 'performance' && matchEvent(e, filters));
+    const out = events.filter((e) => e.type === 'performance' && matchSearch(e, filters));
     return order === 'newest-top' ? out.reverse() : out;
   }, [events, filters, order]);
 
@@ -121,7 +121,7 @@ export function PerformancePanel() {
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       <div className="h-7 shrink-0 flex items-center gap-2 px-3 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface">
-        <span className="w-[68px] shrink-0">Time</span>
+        <span className="w-[92px] shrink-0">Time</span>
         <span className="w-24 shrink-0">Type</span>
         <span className="flex-1">Detail</span>
         <span className="w-16 shrink-0 text-right">Duration</span>

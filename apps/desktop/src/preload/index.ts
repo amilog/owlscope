@@ -21,6 +21,9 @@ const api = {
   restartServer(): Promise<boolean> {
     return ipcRenderer.invoke('owlscope:server:restart');
   },
+  setAlwaysOnTop(value: boolean): Promise<boolean> {
+    return ipcRenderer.invoke('owlscope:set-always-on-top', value);
+  },
 };
 
 contextBridge.exposeInMainWorld('owlscope', api);

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect, useCallback } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import { useEventsStore, matchEvent } from '@/store/events';
+import { useEventsStore, matchSearch } from '@/store/events';
 import { useUIStore } from '@/store/ui';
 import { NetworkRow } from '@/components/NetworkRow';
 import { InlineDetail } from '@/components/InlineDetail';
@@ -12,13 +12,14 @@ export function NetworkPanel() {
   const selectedEventId = useEventsStore((s) => s.selectedEventId);
   const selectEvent = useEventsStore((s) => s.selectEvent);
   const order = useUIStore((s) => s.order);
+  const narrow = useUIStore((s) => s.sidebarCollapsed);
   const isPaused = useEventsStore((s) => s.isPaused);
 
   const sorted = useMemo(() => {
     const out = events.filter(
       (e) =>
         (e.type === 'network:request' || e.type === 'network:response') &&
-        matchEvent(e, filters),
+        matchSearch(e, filters),
     );
     return order === 'newest-top' ? out.reverse() : out;
   }, [events, filters, order]);
@@ -52,13 +53,17 @@ export function NetworkPanel() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="h-7 shrink-0 flex items-center gap-2 px-3 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface">
-        <span className="w-[68px] shrink-0">Time</span>
+      <div
+        className={`h-7 shrink-0 flex items-center gap-2 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface ${
+          narrow ? 'px-2' : 'px-3'
+        }`}
+      >
+        <span className={`shrink-0 ${narrow ? 'w-[60px]' : 'w-[92px]'}`}>Time</span>
         <span className="w-12 shrink-0">Method</span>
         <span className="w-12 shrink-0">Status</span>
-        <span className="w-32 shrink-0">Host</span>
-        <span className="flex-1">Path</span>
-        <span className="w-14 shrink-0 text-right">Time</span>
+        {!narrow && <span className="w-32 shrink-0">Host</span>}
+        <span className="flex-1 min-w-0">Path</span>
+        {!narrow && <span className="w-14 shrink-0 text-right">Time</span>}
       </div>
       <div className="flex-1 min-h-0">
         <Virtuoso
