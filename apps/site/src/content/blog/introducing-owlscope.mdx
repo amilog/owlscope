@@ -1,0 +1,44 @@
+---
+title: Introducing OwlScope
+description: A modern, universal debugging tool for JavaScript and Flutter — open source, MIT, no SaaS.
+pubDate: 2026-05-07
+author: OwlScope Team
+tags: ['announcement']
+featured: true
+---
+
+Today we're launching OwlScope — a debugger we wish existed.
+
+For years we've been switching between Reactotron, Chrome DevTools, `console.log`,
+Charles, and a dozen other tools. None of them did everything we needed,
+especially across React Native and Flutter projects.
+
+So we built one.
+
+## What's in the box
+
+- **One SDK** — install `owlscope` from npm or pub.dev, add a single import.
+- **One desktop app** — macOS, Windows, Linux. Free.
+- **Auto-detection** — Redux, Riverpod, Bloc, Axios, Dio surface automatically.
+- **Real-time UI** — virtualised list handles 50,000+ events without dropping
+  frames.
+- **Full network inspection** — bodies, headers, timing, cURL replay.
+- **Time-travel** — step through Redux/Bloc states.
+- **Production-safe** — no-op in release builds.
+
+## Why not just Reactotron?
+
+Reactotron is a wonderful tool. It's also React-Native-first and the wider JS
+ecosystem has moved on. OwlScope keeps the spirit (a desktop debugger that
+doesn't get in your way) while expanding the surface — Flutter, Vite, Node.js,
+all in one place.
+
+## What's next
+
+The protocol is documented, the SDK is on npm/pub.dev, the desktop app is on
+GitHub Releases. Next up: more adapters (Bloc, Pinia, MobX), time-travel for
+Riverpod, a Chrome extension, and self-hosting docs.
+
+Try it out, send feedback, and tell us what's missing.
+
+— The OwlScope team

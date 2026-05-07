@@ -1,0 +1,120 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="owl-footer">
+  <div class="owl-footer__grid">
+    <div class="owl-footer__brand">
+      <div class="logo">
+        <img src="/owlscope-logo-mark.svg" alt="OwlScope" width="28" height="28" />
+        <span>OwlScope</span>
+      </div>
+      <p>Universal debug &amp; monitoring tool for modern apps.</p>
+      <div class="social">
+        <a href="https://github.com/YOUR_USERNAME/owlscope" rel="noopener noreferrer">GitHub</a>
+        <a href="https://twitter.com/owlscope" rel="noopener noreferrer">Twitter</a>
+        <a href="https://discord.gg/owlscope" rel="noopener noreferrer">Discord</a>
+      </div>
+    </div>
+
+    <div>
+      <h4>Product</h4>
+      <a href="/download">Download</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/blog">Blog</a>
+      <a href="https://github.com/YOUR_USERNAME/owlscope/issues">Roadmap</a>
+    </div>
+
+    <div>
+      <h4>Resources</h4>
+      <a href="/getting-started/installation/">Documentation</a>
+      <a href="/guides/react/">Guides</a>
+      <a href="/api-reference/client/">API</a>
+      <a href="/faq/">FAQ</a>
+    </div>
+
+    <div>
+      <h4>Community</h4>
+      <a href="https://github.com/YOUR_USERNAME/owlscope/discussions">Discussions</a>
+      <a href="https://discord.gg/owlscope">Discord</a>
+      <a href="https://twitter.com/owlscope">Twitter</a>
+    </div>
+  </div>
+
+  <div class="owl-footer__bottom">
+    <p>© {year} OwlScope. MIT License.</p>
+    <p>Built with Astro &amp; love.</p>
+  </div>
+</footer>
+
+<style>
+  .owl-footer {
+    border-top: 1px solid var(--sl-color-gray-5);
+    background: var(--sl-color-bg);
+    padding: 64px 24px 32px;
+    margin-top: 96px;
+  }
+  .owl-footer__grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  .owl-footer__brand .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: var(--sl-color-white);
+    margin-bottom: 12px;
+  }
+  .owl-footer__brand p {
+    color: var(--sl-color-gray-2);
+    font-size: 14px;
+    max-width: 320px;
+    line-height: 1.6;
+    margin: 0 0 16px;
+  }
+  .owl-footer__brand .social {
+    display: flex;
+    gap: 16px;
+  }
+  .owl-footer__brand .social a,
+  .owl-footer h4 + a,
+  .owl-footer div > a {
+    color: var(--sl-color-gray-2);
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .owl-footer__brand .social a:hover,
+  .owl-footer div > a:hover {
+    color: var(--sl-color-accent);
+  }
+  .owl-footer h4 {
+    color: var(--sl-color-white);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 16px;
+    font-weight: 600;
+  }
+  .owl-footer div > a {
+    display: block;
+    padding: 4px 0;
+  }
+  .owl-footer__bottom {
+    max-width: 1100px;
+    margin: 48px auto 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--sl-color-gray-5);
+    display: flex;
+    justify-content: space-between;
+    color: var(--sl-color-gray-2);
+    font-size: 13px;
+  }
+  @media (max-width: 800px) {
+    .owl-footer__grid { grid-template-columns: 1fr 1fr; }
+    .owl-footer__bottom { flex-direction: column; gap: 8px; }
+  }
+</style>

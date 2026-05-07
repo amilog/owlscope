@@ -1,0 +1,143 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Landing from '../../layouts/Landing.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+const { post } = Astro.props;
+const { Content } = await post.render();
+---
+
+<Landing title={`${post.data.title} · OwlScope Blog`} description={post.data.description} ogImage={post.data.heroImage ?? '/og-image.png'}>
+  <article class="blog-post">
+    {post.data.heroImage && (
+      <img src={post.data.heroImage} alt="" class="hero-image" />
+    )}
+
+    <header>
+      <a href="/blog" class="back">← All posts</a>
+      <div class="meta">
+        <time datetime={post.data.pubDate.toISOString()}>
+          {post.data.pubDate.toLocaleDateString('en-US', { dateStyle: 'long' })}
+        </time>
+        <span aria-hidden="true">·</span>
+        <span>{post.data.author}</span>
+      </div>
+      <h1>{post.data.title}</h1>
+      <p class="lead">{post.data.description}</p>
+      {post.data.tags.length > 0 && (
+        <div class="tags">
+          {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+        </div>
+      )}
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</Landing>
+
+<style>
+  .blog-post {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+  .hero-image {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--sl-color-gray-5);
+    margin-bottom: 32px;
+  }
+  .back {
+    color: var(--sl-color-gray-2);
+    font-size: 13px;
+    display: inline-block;
+    margin-bottom: 24px;
+  }
+  .back:hover { color: var(--sl-color-accent); }
+  .meta {
+    display: flex;
+    gap: 8px;
+    color: var(--sl-color-gray-2);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .blog-post h1 {
+    font-size: 2.5rem;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    margin: 0 0 16px;
+  }
+  .lead {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--sl-color-gray-1);
+    margin: 0 0 24px;
+  }
+  .tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 12px;
+    color: var(--sl-color-accent);
+    background: var(--sl-color-accent-low);
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .prose {
+    margin-top: 48px;
+    line-height: 1.8;
+    font-size: 17px;
+    color: var(--sl-color-gray-1);
+  }
+  .prose :global(h2) {
+    font-size: 1.6rem;
+    margin: 48px 0 16px;
+    color: var(--sl-color-white);
+  }
+  .prose :global(h3) {
+    font-size: 1.25rem;
+    margin: 32px 0 12px;
+    color: var(--sl-color-white);
+  }
+  .prose :global(p) { margin: 0 0 24px; }
+  .prose :global(a) {
+    color: var(--sl-color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose :global(pre) {
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 14px;
+  }
+  .prose :global(code:not(pre code)) {
+    background: var(--sl-color-bg-inline-code);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--sl-color-accent);
+    padding-left: 16px;
+    color: var(--sl-color-gray-2);
+    margin: 24px 0;
+  }
+</style>

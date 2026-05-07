@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" role="img" aria-label="OwlScope">
+  <rect width="140" height="140" rx="32" fill="#0d0d0d"/>
+  <g fill="none" stroke="#a78bfa" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 38 30 Q 22 30 22 50 Q 22 65 18 70 Q 22 75 22 90 Q 22 110 38 110"/>
+    <path d="M 102 30 Q 118 30 118 50 Q 118 65 122 70 Q 118 75 118 90 Q 118 110 102 110"/>
+    <path d="M 65 80 L 70 86 L 75 80" stroke-width="3.5"/>
+  </g>
+  <circle cx="52" cy="60" r="10" fill="#a78bfa"/>
+  <circle cx="88" cy="60" r="10" fill="#a78bfa"/>
+  <circle cx="55" cy="57" r="2.5" fill="#fff"/>
+  <circle cx="91" cy="57" r="2.5" fill="#fff"/>
+</svg>

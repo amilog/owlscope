@@ -1,0 +1,56 @@
+---
+import Default from '@astrojs/starlight/components/Header.astro';
+---
+
+<div class="owl-header-wrap">
+  <Default {...Astro.props as any}><slot /></Default>
+  <nav class="owl-extra-nav" aria-label="Primary">
+    <a href="/getting-started/installation/">Docs</a>
+    <a href="/guides/react/">Guides</a>
+    <a href="/blog">Blog</a>
+    <a href="/download" class="download-link">Download</a>
+  </nav>
+</div>
+
+<style>
+  .owl-header-wrap {
+    position: relative;
+    width: 100%;
+  }
+  .owl-extra-nav {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    height: var(--sl-nav-height, 3.5rem);
+  }
+  .owl-extra-nav a {
+    color: var(--sl-color-gray-2);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s;
+    pointer-events: auto;
+  }
+  .owl-extra-nav a:hover {
+    color: var(--sl-color-white);
+  }
+  .download-link {
+    background: var(--sl-color-accent);
+    color: var(--sl-color-bg) !important;
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  .download-link:hover {
+    background: var(--sl-color-accent-high) !important;
+  }
+  @media (max-width: 1100px) {
+    .owl-extra-nav {
+      display: none;
+    }
+  }
+</style>

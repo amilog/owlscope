@@ -9,7 +9,9 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @owlscope/desktop",
+    "dev:site": "npm run dev -w @owlscope/site",
     "build:sdk": "npm run build -w owlscope",
+    "build:site": "npm run build -w @owlscope/site",
     "build": "npm run build -w @owlscope/protocol && npm run build -w owlscope && npm run build -w @owlscope/desktop",
     "clean": "rimraf 'apps/*/out' 'apps/*/dist' 'packages/*/dist'"
   },

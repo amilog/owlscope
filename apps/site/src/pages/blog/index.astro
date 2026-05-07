@@ -1,0 +1,80 @@
+---
+import { getCollection } from 'astro:content';
+import Landing from '../../layouts/Landing.astro';
+import BlogCard from '../../components/BlogCard.astro';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const featured = posts.find((p) => p.data.featured);
+const rest = featured ? posts.filter((p) => p.slug !== featured.slug) : posts;
+---
+
+<Landing title="Blog · OwlScope" description="News, tutorials, and stories from the OwlScope team.">
+  <section class="blog-list">
+    <header class="hero">
+      <span class="kicker">Blog</span>
+      <h1>What's new with OwlScope</h1>
+      <p>Releases, deep dives, and patterns from people building real apps.</p>
+    </header>
+
+    {featured && (
+      <div class="featured-wrap">
+        <BlogCard post={featured} featured />
+      </div>
+    )}
+
+    {rest.length > 0 && (
+      <div class="grid">
+        {rest.map((post) => <BlogCard post={post} />)}
+      </div>
+    )}
+
+    {posts.length === 0 && (
+      <p class="empty">No posts yet. Check back soon.</p>
+    )}
+  </section>
+</Landing>
+
+<style>
+  .blog-list {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  .hero {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .hero .kicker {
+    color: var(--sl-color-accent);
+    font-family: var(--sl-font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-size: 3rem;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    margin: 8px 0 12px;
+  }
+  .hero p {
+    color: var(--sl-color-gray-2);
+    font-size: 18px;
+  }
+  .featured-wrap {
+    margin-bottom: 32px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  .empty {
+    text-align: center;
+    color: var(--sl-color-gray-2);
+    margin: 64px 0;
+  }
+</style>

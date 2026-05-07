@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" role="img" aria-label="OwlScope">
+  <title>OwlScope</title>
+  <style>
+    svg { color: #a78bfa; }
+    @media (prefers-color-scheme: light) {
+      svg { color: #7c3aed; }
+    }
+  </style>
+  <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 38 30 Q 22 30 22 50 Q 22 65 18 70 Q 22 75 22 90 Q 22 110 38 110"/>
+    <path d="M 102 30 Q 118 30 118 50 Q 118 65 122 70 Q 118 75 118 90 Q 118 110 102 110"/>
+    <path d="M 65 80 L 70 86 L 75 80" stroke-width="3"/>
+    <path d="M 38 118 L 38 128 M 46 118 L 46 128 M 54 118 L 54 128" stroke-width="3.5"/>
+    <path d="M 86 118 L 86 128 M 94 118 L 94 128 M 102 118 L 102 128" stroke-width="3.5"/>
+  </g>
+  <circle cx="52" cy="60" r="10" fill="currentColor"/>
+  <circle cx="88" cy="60" r="10" fill="currentColor"/>
+  <circle cx="55" cy="57" r="2.5" fill="#ffffff"/>
+  <circle cx="91" cy="57" r="2.5" fill="#ffffff"/>
+</svg>

@@ -1,0 +1,204 @@
+---
+interface Props {
+  size?: number;
+  variant?: 'static' | 'blink' | 'float' | 'pulse' | 'look-around' | 'scan';
+  iconBackground?: boolean;
+  color?: string;
+  brandColor?: string;
+  bgColor?: string;
+  class?: string;
+}
+
+const {
+  size = 64,
+  variant = 'blink',
+  iconBackground = false,
+  color = 'currentColor',
+  brandColor = '#a78bfa',
+  bgColor = '#a78bfa',
+  class: className = '',
+} = Astro.props;
+
+const id = `owl-${Math.random().toString(36).slice(2, 9)}`;
+const strokeColor = iconBackground ? '#0d0d0d' : color;
+---
+
+<div class={`owl-logo ${className}`} data-variant={variant} data-id={id}>
+  {iconBackground && variant === 'scan' && <div class="scan-line" />}
+  <svg
+    viewBox="0 0 140 140"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-label="OwlScope"
+  >
+    <g
+      fill="none"
+      stroke={strokeColor}
+      stroke-width="4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M 38 30 Q 22 30 22 50 Q 22 65 18 70 Q 22 75 22 90 Q 22 110 38 110" />
+      <path d="M 102 30 Q 118 30 118 50 Q 118 65 122 70 Q 118 75 118 90 Q 118 110 102 110" />
+      <path d="M 65 80 L 70 86 L 75 80" stroke-width="3" />
+      <path d="M 38 118 L 38 128 M 46 118 L 46 128 M 54 118 L 54 128" stroke-width="3.5" />
+      <path d="M 86 118 L 86 128 M 94 118 L 94 128 M 102 118 L 102 128" stroke-width="3.5" />
+    </g>
+    <g class="owl-eye">
+      <circle cx="52" cy="60" r="10" fill={strokeColor} />
+      <circle cx="55" cy="57" r="2.5" fill={brandColor} />
+    </g>
+    <g class="owl-eye">
+      <circle cx="88" cy="60" r="10" fill={strokeColor} />
+      <circle cx="91" cy="57" r="2.5" fill={brandColor} />
+    </g>
+  </svg>
+</div>
+
+<style define:vars={{ size: `${size}px`, bgColor, radius: `${size * 0.225}px`, floatDistance: `${size * 0.04}px`, scanDistance: `${size}px`, shadowOffset: `${size * 0.08}px`, shadowBlur: `${size * 0.3}px`, shadowBlurMax: `${size * 0.45}px`, shadowOffsetMax: `${size * 0.12}px` }}>
+  .owl-logo {
+    width: var(--size);
+    height: var(--size);
+    position: relative;
+    display: inline-block;
+  }
+
+  .owl-logo[data-variant='blink'][data-bg='true'],
+  .owl-logo[data-variant='float'][data-bg='true'],
+  .owl-logo[data-variant='pulse'][data-bg='true'],
+  .owl-logo[data-variant='look-around'][data-bg='true'],
+  .owl-logo[data-variant='scan'][data-bg='true'],
+  .owl-logo[data-variant='static'][data-bg='true'] {
+    background: var(--bgColor);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow:
+      0 var(--shadowOffset) var(--shadowBlur) rgba(167, 139, 250, 0.35),
+      0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  }
+
+  .owl-logo svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .owl-eye {
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+
+  .owl-logo[data-variant='blink'] .owl-eye,
+  .owl-logo[data-variant='float'] .owl-eye,
+  .owl-logo[data-variant='pulse'] .owl-eye,
+  .owl-logo[data-variant='scan'] .owl-eye {
+    animation: owl-blink 4s ease-in-out infinite;
+  }
+
+  .owl-logo[data-variant='look-around'] .owl-eye {
+    animation:
+      owl-look 6s ease-in-out infinite,
+      owl-blink 4s ease-in-out infinite;
+  }
+
+  .owl-logo[data-variant='float'] svg {
+    animation: owl-float 4s ease-in-out infinite;
+  }
+
+  .owl-logo[data-variant='pulse'] {
+    animation: owl-pulse 3s ease-in-out infinite;
+  }
+
+  .scan-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    );
+    animation: owl-scan 3s linear infinite;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  @keyframes owl-blink {
+    0%, 92%, 100% {
+      transform: scaleY(1);
+    }
+    94%, 96% {
+      transform: scaleY(0.05);
+    }
+  }
+
+  @keyframes owl-float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(calc(var(--floatDistance) * -1));
+    }
+  }
+
+  @keyframes owl-pulse {
+    0%, 100% {
+      box-shadow:
+        0 var(--shadowOffset) var(--shadowBlur) rgba(167, 139, 250, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    }
+    50% {
+      box-shadow:
+        0 var(--shadowOffsetMax) var(--shadowBlurMax) rgba(167, 139, 250, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+    }
+  }
+
+  @keyframes owl-look {
+    0%, 100% {
+      transform: translate(0, 0);
+    }
+    20% {
+      transform: translate(-1.5px, 0);
+    }
+    40% {
+      transform: translate(1.5px, 0);
+    }
+    60% {
+      transform: translate(-1px, -0.5px);
+    }
+    80% {
+      transform: translate(1px, 0);
+    }
+  }
+
+  @keyframes owl-scan {
+    0% {
+      transform: translateY(-2px);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(var(--scanDistance));
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .owl-logo .owl-eye,
+    .owl-logo svg,
+    .owl-logo {
+      animation: none !important;
+    }
+    .scan-line {
+      display: none;
+    }
+  }
+</style>

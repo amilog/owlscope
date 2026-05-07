@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="512" height="512" role="img" aria-label="OwlScope animated logo">
+  <title>OwlScope</title>
+  <desc>Animated owl mark with blinking eyes — brand purple, dark/light aware</desc>
+  <style>
+    /* Body colour follows the user's OS scheme. Brand purple stays vivid
+       on either side; the deeper shade has higher contrast against white. */
+    svg { color: #a78bfa; }
+    @media (prefers-color-scheme: light) {
+      svg { color: #7c3aed; }
+    }
+
+    @keyframes owl-blink {
+      0%, 92%, 100% { transform: scaleY(1); }
+      94%, 96%      { transform: scaleY(0.05); }
+    }
+    .owl-eye-l, .owl-eye-r {
+      transform-box: view-box;
+      animation: owl-blink 4s ease-in-out infinite;
+    }
+    .owl-eye-l { transform-origin: 52px 60px; }
+    .owl-eye-r { transform-origin: 88px 60px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .owl-eye-l, .owl-eye-r { animation: none; }
+    }
+  </style>
+  <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 38 30 Q 22 30 22 50 Q 22 65 18 70 Q 22 75 22 90 Q 22 110 38 110"/>
+    <path d="M 102 30 Q 118 30 118 50 Q 118 65 122 70 Q 118 75 118 90 Q 118 110 102 110"/>
+    <path d="M 65 80 L 70 86 L 75 80" stroke-width="3"/>
+    <path d="M 38 118 L 38 128 M 46 118 L 46 128 M 54 118 L 54 128" stroke-width="3.5"/>
+    <path d="M 86 118 L 86 128 M 94 118 L 94 128 M 102 118 L 102 128" stroke-width="3.5"/>
+  </g>
+  <g class="owl-eye-l">
+    <circle cx="52" cy="60" r="10" fill="currentColor"/>
+    <circle cx="55" cy="57" r="2.5" fill="#ffffff"/>
+  </g>
+  <g class="owl-eye-r">
+    <circle cx="88" cy="60" r="10" fill="currentColor"/>
+    <circle cx="91" cy="57" r="2.5" fill="#ffffff"/>
+  </g>
+</svg>

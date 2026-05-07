@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMid meet">
+  <rect width="1280" height="800" fill="#0d0d0d"/>
+  <rect width="1280" height="40" fill="#131313"/>
+  <line x1="0" y1="40" x2="1280" y2="40" stroke="#1f1f1f"/>
+  <circle cx="20" cy="20" r="6" fill="#ff5f56"/><circle cx="40" cy="20" r="6" fill="#ffbd2e"/><circle cx="60" cy="20" r="6" fill="#27c93f"/>
+  <text x="640" y="25" fill="#888" font-family="Inter, sans-serif" font-size="12" text-anchor="middle">elan_az · android · State</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="40" width="200" height="760" fill="#131313"/>
+  <line x1="200" y1="40" x2="200" y2="800" stroke="#1f1f1f"/>
+  <text x="16" y="78" fill="#fff" font-family="Inter, sans-serif" font-size="14" font-weight="600">OwlScope</text>
+  <g font-family="Inter, sans-serif" font-size="13">
+    <text x="36" y="118" fill="#888">Home</text>
+    <text x="36" y="150" fill="#888">Timeline</text>
+    <text x="36" y="182" fill="#888">Logs</text>
+    <text x="36" y="214" fill="#888">Network</text>
+    <rect x="8" y="228" width="184" height="28" rx="4" fill="rgba(167,139,250,0.1)"/>
+    <text x="36" y="246" fill="#a78bfa" font-weight="600">State</text>
+    <text x="170" y="246" fill="#a78bfa" text-anchor="end">18</text>
+    <text x="36" y="278" fill="#888">Errors</text>
+  </g>
+
+  <!-- Selected state row -->
+  <rect x="200" y="60" width="1080" height="28" fill="rgba(167,139,250,0.08)"/>
+  <g font-family="JetBrains Mono, monospace" font-size="11">
+    <text x="216" y="78" fill="#888">17:18:33.390</text>
+    <text x="316" y="78" fill="#2dd4bf">state:change</text>
+    <text x="416" y="78" fill="#e5e5e5">counterProvider · AsyncData(7) → AsyncData(8)</text>
+  </g>
+
+  <!-- Side-by-side previous/next -->
+  <rect x="200" y="100" width="540" height="700" fill="#0a0a0a" stroke="#1f1f1f"/>
+  <rect x="740" y="100" width="540" height="700" fill="#0a0a0a" stroke="#1f1f1f"/>
+  <line x1="740" y1="100" x2="740" y2="800" stroke="#1f1f1f"/>
+
+  <text x="216" y="125" fill="#888" font-family="Inter, sans-serif" font-size="10" letter-spacing="0.06em">PREVIOUS</text>
+  <text x="756" y="125" fill="#a78bfa" font-family="Inter, sans-serif" font-size="10" letter-spacing="0.06em">NEXT</text>
+
+  <g font-family="JetBrains Mono, monospace" font-size="12">
+    <!-- Previous -->
+    <text x="216" y="160" fill="#888">{</text>
+    <text x="232" y="180" fill="#fbbf24">"counter"</text>
+    <text x="312" y="180" fill="#888">:</text>
+    <text x="324" y="180" fill="#60a5fa" font-weight="600">7</text>
+    <text x="232" y="200" fill="#fbbf24">"history"</text>
+    <text x="312" y="200" fill="#888">: [</text>
+    <text x="244" y="220" fill="#60a5fa">1</text>
+    <text x="252" y="220" fill="#888">,</text>
+    <text x="262" y="220" fill="#60a5fa">2</text>
+    <text x="270" y="220" fill="#888">,</text>
+    <text x="280" y="220" fill="#60a5fa">3</text>
+    <text x="288" y="220" fill="#888">,</text>
+    <text x="298" y="220" fill="#60a5fa">4</text>
+    <text x="306" y="220" fill="#888">,</text>
+    <text x="316" y="220" fill="#60a5fa">5</text>
+    <text x="324" y="220" fill="#888">,</text>
+    <text x="334" y="220" fill="#60a5fa">6</text>
+    <text x="342" y="220" fill="#888">,</text>
+    <text x="352" y="220" fill="#60a5fa">7</text>
+    <text x="232" y="240" fill="#888">]</text>
+    <text x="216" y="260" fill="#888">}</text>
+
+    <!-- Next -->
+    <text x="756" y="160" fill="#888">{</text>
+    <text x="772" y="180" fill="#fbbf24">"counter"</text>
+    <text x="852" y="180" fill="#888">:</text>
+    <rect x="858" y="170" width="14" height="14" fill="rgba(74,222,128,0.15)"/>
+    <text x="864" y="180" fill="#4ade80" font-weight="600">8</text>
+    <text x="772" y="200" fill="#fbbf24">"history"</text>
+    <text x="852" y="200" fill="#888">: [</text>
+    <text x="784" y="220" fill="#60a5fa">1</text>
+    <text x="792" y="220" fill="#888">,</text>
+    <text x="802" y="220" fill="#60a5fa">2</text>
+    <text x="810" y="220" fill="#888">,</text>
+    <text x="820" y="220" fill="#60a5fa">3</text>
+    <text x="828" y="220" fill="#888">,</text>
+    <text x="838" y="220" fill="#60a5fa">4</text>
+    <text x="846" y="220" fill="#888">,</text>
+    <text x="856" y="220" fill="#60a5fa">5</text>
+    <text x="864" y="220" fill="#888">,</text>
+    <text x="874" y="220" fill="#60a5fa">6</text>
+    <text x="882" y="220" fill="#888">,</text>
+    <text x="892" y="220" fill="#60a5fa">7</text>
+    <text x="900" y="220" fill="#888">,</text>
+    <rect x="906" y="210" width="14" height="14" fill="rgba(74,222,128,0.15)"/>
+    <text x="912" y="220" fill="#4ade80">8</text>
+    <text x="772" y="240" fill="#888">]</text>
+    <text x="756" y="260" fill="#888">}</text>
+  </g>
+</svg>

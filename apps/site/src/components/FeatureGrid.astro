@@ -1,0 +1,93 @@
+---
+import { Zap, Globe, Search, Shield, Repeat, BarChart3 } from 'lucide-react';
+
+const features = [
+  {
+    icon: Zap,
+    title: 'Zero Config',
+    desc: 'One import. No setup files. The SDK auto-detects your framework and wires everything up.',
+  },
+  {
+    icon: Globe,
+    title: 'Multi-platform',
+    desc: 'JavaScript, TypeScript, Flutter, React Native — first-class support for everything you ship.',
+  },
+  {
+    icon: Search,
+    title: 'Auto-detect',
+    desc: 'Redux, Axios, Dio, Riverpod, Bloc — picked up automatically without per-call instrumentation.',
+  },
+  {
+    icon: Shield,
+    title: 'Production-safe',
+    desc: 'No-op in release builds. Zero overhead, zero leaked tokens, zero runtime cost.',
+  },
+  {
+    icon: Repeat,
+    title: 'Time-travel',
+    desc: 'Step through Redux/Bloc state transitions. Replay actions. Find regressions in seconds.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Real-time',
+    desc: 'Virtualised UI handles 50,000 events without dropping frames. Stays at 60 FPS.',
+  },
+];
+---
+
+<div class="owl-feature-grid">
+  {features.map((f) => {
+    const I = f.icon;
+    return (
+      <div class="owl-feature-card">
+        <div class="owl-feature-card__icon"><I size={22} /></div>
+        <h3>{f.title}</h3>
+        <p>{f.desc}</p>
+      </div>
+    );
+  })}
+</div>
+
+<style>
+  .owl-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .owl-feature-card {
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s ease;
+  }
+  .owl-feature-card:hover {
+    border-color: var(--sl-color-accent);
+    box-shadow: 0 0 40px var(--sl-color-accent-low);
+    transform: translateY(-2px);
+  }
+  .owl-feature-card__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--sl-color-accent-low);
+    color: var(--sl-color-accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .owl-feature-card h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--sl-color-white);
+  }
+  .owl-feature-card p {
+    color: var(--sl-color-gray-2);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+  }
+</style>

@@ -1,0 +1,57 @@
+---
+title: React
+description: Wire OwlScope into a React or Vite app.
+---
+
+## Overview
+
+OwlScope works in any React app — Vite, Next.js, Create React App, or hand-rolled.
+Network calls (fetch + XHR), console output, errors, and (with the adapter)
+Redux/Zustand state are captured automatically.
+
+## Setup
+
+```bash
+npm install -D owlscope
+```
+
+Add a single import to your entry file before `ReactDOM.createRoot`:
+
+```ts title="src/main.tsx"
+import 'owlscope/auto';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+
+createRoot(document.getElementById('root')!).render(<App />);
+```
+
+That's it for vanilla React. For state inspection, see the [Redux](/guides/redux/)
+or [Zustand](/guides/zustand/) guides.
+
+## Common patterns
+
+### Tagging custom events
+
+```ts
+import { owlscope } from 'owlscope';
+
+owlscope.emit('user:action', { kind: 'checkout-started', cart });
+```
+
+### Redacting secrets
+
+```ts
+import { owlscope } from 'owlscope';
+
+owlscope.configure({
+  redact: ['password', 'token', 'authorization', /^api[_-]?key$/i],
+});
+```
+
+## Troubleshooting
+
+**Events don't appear.** Check the desktop app shows your client in the
+sidebar. If it doesn't, verify the port (default `9090`) isn't blocked.
+
+**Production bundle is bigger.** Use the explicit `'owlscope/auto'` import
+only in dev — `import.meta.env.DEV && await import('owlscope/auto')`.

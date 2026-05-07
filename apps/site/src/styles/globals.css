@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-feature-settings:
+      'cv11',
+      'ss01',
+      'ss03';
+  }
+
+  ::selection {
+    background: rgba(167, 139, 250, 0.3);
+    color: #fff;
+  }
+}
+
+@layer utilities {
+  .glow-brand {
+    box-shadow: 0 0 60px rgba(167, 139, 250, 0.18);
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(167, 139, 250, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(167, 139, 250, 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}

@@ -1,0 +1,48 @@
+---
+title: OwlScope
+description: Universal debug & monitoring tool for JavaScript and Flutter
+template: splash
+hero:
+  tagline: '{ debug.everything }'
+  image:
+    file: ../../../public/owlscope-logo-animated.svg
+  actions:
+    - text: Get Started
+      link: /getting-started/installation/
+      icon: right-arrow
+      variant: primary
+    - text: Download for Mac
+      link: /download
+      icon: external
+      variant: secondary
+---
+
+import TerminalDemo from '../../components/TerminalDemo.tsx';
+import FeatureGrid from '../../components/FeatureGrid.astro';
+import ScreenshotShowcase from '../../components/ScreenshotShowcase.tsx';
+import CodeTabs from '../../components/CodeTabs.tsx';
+
+<TerminalDemo client:load />
+
+## Why OwlScope
+
+<FeatureGrid />
+
+## See it in action
+
+<ScreenshotShowcase client:load />
+
+## Works everywhere you ship
+
+<CodeTabs client:load />
+
+## Ready to debug everything?
+
+<div style="text-align: center; padding: 56px 0 40px;">
+  <a href="/getting-started/installation/" class="action primary">
+    Get Started in 30 seconds →
+  </a>
+  <p style="color: var(--sl-color-gray-2); margin-top: 16px; font-size: 14px;">
+    Free · open source · MIT licensed
+  </p>
+</div>

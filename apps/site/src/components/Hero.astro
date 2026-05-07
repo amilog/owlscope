@@ -1,0 +1,257 @@
+---
+// Hero.astro - OwlScope homepage hero section
+// Drop into any Astro page or import the JSX in your framework
+---
+
+<section class="owl-hero">
+  <div class="owl-hero__bg">
+    <div class="owl-hero__glow owl-hero__glow--1"></div>
+    <div class="owl-hero__glow owl-hero__glow--2"></div>
+  </div>
+
+  <div class="owl-hero__content">
+    <div class="owl-hero__icon">
+      <div class="app-icon">
+        <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OwlScope">
+          <g fill="none" stroke="#0d0d0d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 38 30 Q 22 30 22 50 Q 22 65 18 70 Q 22 75 22 90 Q 22 110 38 110"/>
+            <path d="M 102 30 Q 118 30 118 50 Q 118 65 122 70 Q 118 75 118 90 Q 118 110 102 110"/>
+            <path d="M 65 80 L 70 86 L 75 80" stroke-width="3"/>
+            <path d="M 38 118 L 38 128 M 46 118 L 46 128 M 54 118 L 54 128" stroke-width="3.5"/>
+            <path d="M 86 118 L 86 128 M 94 118 L 94 128 M 102 118 L 102 128" stroke-width="3.5"/>
+          </g>
+          <g class="owl-eye">
+            <circle cx="52" cy="60" r="10" fill="#0d0d0d"/>
+            <circle cx="55" cy="57" r="2.5" fill="#a78bfa"/>
+          </g>
+          <g class="owl-eye">
+            <circle cx="88" cy="60" r="10" fill="#0d0d0d"/>
+            <circle cx="91" cy="57" r="2.5" fill="#a78bfa"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="owl-hero__text">
+      <h1 class="owl-hero__title">OwlScope</h1>
+      <p class="owl-hero__tagline">{`{ debug.everything }`}</p>
+      <p class="owl-hero__subtitle">Universal debug & monitoring tool</p>
+      <p class="owl-hero__platforms">
+        <span>JavaScript</span>
+        <span class="dot">·</span>
+        <span>TypeScript</span>
+        <span class="dot">·</span>
+        <span>Flutter</span>
+        <span class="dot">·</span>
+        <span>React Native</span>
+      </p>
+      <div class="owl-hero__ctas">
+        <a href="/getting-started/installation/" class="owl-hero__cta owl-hero__cta--primary">
+          Get Started →
+        </a>
+        <a href="/download" class="owl-hero__cta owl-hero__cta--secondary">
+          Download for Mac
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .owl-hero {
+    position: relative;
+    background: #0d0a18;
+    background-image:
+      radial-gradient(ellipse 800px 600px at 80% 20%, rgba(167, 139, 250, 0.18), transparent 60%),
+      radial-gradient(ellipse 600px 400px at 20% 80%, rgba(124, 58, 237, 0.1), transparent 60%),
+      linear-gradient(135deg, #0d0a18 0%, #1a1530 50%, #2d1f4d 100%);
+    padding: clamp(48px, 12vh, 120px) 24px;
+    overflow: hidden;
+    color: #e5e5e5;
+  }
+
+  .owl-hero__bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .owl-hero__glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.4;
+  }
+
+  .owl-hero__glow--1 {
+    width: 400px;
+    height: 400px;
+    background: #a78bfa;
+    top: -100px;
+    right: -50px;
+    animation: glow-drift-1 20s ease-in-out infinite;
+  }
+
+  .owl-hero__glow--2 {
+    width: 300px;
+    height: 300px;
+    background: #7c3aed;
+    bottom: -100px;
+    left: 10%;
+    animation: glow-drift-2 25s ease-in-out infinite;
+  }
+
+  .owl-hero__content {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: clamp(32px, 8vw, 80px);
+    flex-wrap: wrap;
+  }
+
+  .owl-hero__icon {
+    flex-shrink: 0;
+  }
+
+  .app-icon {
+    width: clamp(120px, 18vw, 180px);
+    height: clamp(120px, 18vw, 180px);
+    background: #a78bfa;
+    border-radius: 30px;
+    box-shadow:
+      0 20px 60px rgba(167, 139, 250, 0.45),
+      0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    animation: icon-float 6s ease-in-out infinite;
+  }
+
+  .app-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .owl-eye {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: owl-blink 4s ease-in-out infinite;
+  }
+
+  .owl-hero__text {
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .owl-hero__title {
+    font-size: clamp(48px, 8vw, 88px);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin: 0;
+    color: #fff;
+  }
+
+  .owl-hero__tagline {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: clamp(16px, 2vw, 22px);
+    color: #a78bfa;
+    margin: 16px 0 28px;
+  }
+
+  .owl-hero__subtitle {
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 400;
+    color: #e5e5e5;
+    margin: 0 0 8px;
+  }
+
+  .owl-hero__platforms {
+    font-size: 14px;
+    color: #888;
+    margin: 0 0 32px;
+  }
+
+  .owl-hero__platforms .dot {
+    margin: 0 6px;
+    color: #555;
+  }
+
+  .owl-hero__ctas {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .owl-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .owl-hero__cta--primary {
+    background: #a78bfa;
+    color: #0d0d0d;
+  }
+
+  .owl-hero__cta--primary:hover {
+    background: #b8a0fc;
+    transform: translateY(-1px);
+  }
+
+  .owl-hero__cta--secondary {
+    background: transparent;
+    color: #a78bfa;
+    border: 1px solid #a78bfa;
+  }
+
+  .owl-hero__cta--secondary:hover {
+    background: rgba(167, 139, 250, 0.1);
+  }
+
+  @keyframes owl-blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    94%, 96% { transform: scaleY(0.05); }
+  }
+
+  @keyframes icon-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(-1deg); }
+  }
+
+  @keyframes glow-drift-1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-40px, 30px) scale(1.1); }
+  }
+
+  @keyframes glow-drift-2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(40px, -20px) scale(1.15); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .owl-eye,
+    .app-icon,
+    .owl-hero__glow {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .owl-hero__content {
+      flex-direction: column;
+      text-align: center;
+    }
+    .owl-hero__platforms {
+      justify-content: center;
+    }
+    .owl-hero__ctas {
+      justify-content: center;
+    }
+  }
+</style>

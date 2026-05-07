@@ -1,0 +1,104 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  featured?: boolean;
+}
+const { post, featured = false } = Astro.props;
+---
+
+<a href={`/blog/${post.slug}`} class={`blog-card ${featured ? 'featured' : ''}`}>
+  {post.data.heroImage && (
+    <div class="image">
+      <img src={post.data.heroImage} alt="" loading="lazy" />
+    </div>
+  )}
+  <div class="content">
+    <div class="meta">
+      <time datetime={post.data.pubDate.toISOString()}>
+        {post.data.pubDate.toLocaleDateString('en-US', { dateStyle: 'medium' })}
+      </time>
+      <span aria-hidden="true">·</span>
+      <span>{post.data.author}</span>
+    </div>
+    <h3>{post.data.title}</h3>
+    <p>{post.data.description}</p>
+    {post.data.tags.length > 0 && (
+      <div class="tags">
+        {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+      </div>
+    )}
+  </div>
+</a>
+
+<style>
+  .blog-card {
+    display: block;
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+  .blog-card:hover {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 30px 80px -30px var(--sl-color-accent-low);
+  }
+  .blog-card .image {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--sl-color-gray-5);
+  }
+  .blog-card .image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .blog-card .content {
+    padding: 24px;
+  }
+  .blog-card .meta {
+    display: flex;
+    gap: 8px;
+    color: var(--sl-color-gray-2);
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  .blog-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--sl-color-white);
+    margin: 0 0 8px;
+  }
+  .blog-card p {
+    color: var(--sl-color-gray-2);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 12px;
+  }
+  .blog-card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .blog-card .tag {
+    font-size: 11px;
+    color: var(--sl-color-accent);
+    background: var(--sl-color-accent-low);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  .blog-card.featured {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+  }
+  .blog-card.featured .image { aspect-ratio: auto; height: 100%; }
+  .blog-card.featured .content { padding: 32px; }
+  .blog-card.featured h3 { font-size: 26px; }
+  .blog-card.featured p { font-size: 16px; }
+  @media (max-width: 700px) {
+    .blog-card.featured { grid-template-columns: 1fr; }
+  }
+</style>

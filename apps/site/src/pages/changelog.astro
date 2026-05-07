@@ -1,0 +1,120 @@
+---
+import Landing from '../layouts/Landing.astro';
+
+interface Release {
+  tag_name: string;
+  name: string;
+  published_at: string;
+  body: string;
+  html_url: string;
+}
+
+let releases: Release[] = [];
+try {
+  const res = await fetch('https://api.github.com/repos/YOUR_USERNAME/owlscope/releases', {
+    headers: { 'User-Agent': 'owlscope-site' },
+  });
+  if (res.ok) releases = (await res.json()) as Release[];
+} catch {
+  /* offline build — page falls back to empty state */
+}
+---
+
+<Landing title="Changelog · OwlScope" description="Every OwlScope release with download links and notes.">
+  <section class="changelog">
+    <header>
+      <span class="kicker">Changelog</span>
+      <h1>Every release, in order</h1>
+      <p>Pulled live from GitHub Releases at build time.</p>
+    </header>
+
+    {releases.length === 0 && (
+      <div class="empty">
+        <p>No releases published yet — or GitHub was unreachable at build time.</p>
+        <a href="https://github.com/YOUR_USERNAME/owlscope/releases" rel="noopener noreferrer">View on GitHub →</a>
+      </div>
+    )}
+
+    <ol>
+      {releases.map((r) => (
+        <li>
+          <header class="release-head">
+            <h2>
+              <a href={r.html_url} rel="noopener noreferrer">{r.name || r.tag_name}</a>
+            </h2>
+            <time datetime={r.published_at}>
+              {new Date(r.published_at).toLocaleDateString('en-US', { dateStyle: 'long' })}
+            </time>
+          </header>
+          <pre class="body">{r.body}</pre>
+        </li>
+      ))}
+    </ol>
+  </section>
+</Landing>
+
+<style>
+  .changelog {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .kicker {
+    color: var(--sl-color-accent);
+    font-family: var(--sl-font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  header h1 {
+    font-size: 2.5rem;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    margin: 8px 0 12px;
+  }
+  header p { color: var(--sl-color-gray-2); }
+
+  ol {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 16px;
+  }
+  li {
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .release-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .release-head h2 { font-size: 22px; margin: 0; }
+  .release-head a { color: var(--sl-color-white); }
+  .release-head a:hover { color: var(--sl-color-accent); }
+  .release-head time { color: var(--sl-color-gray-2); font-size: 13px; }
+  .body {
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--sl-color-gray-1);
+    font-family: var(--sl-font);
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0;
+  }
+  .empty {
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 12px;
+  }
+  .empty a { color: var(--sl-color-accent); }
+</style>

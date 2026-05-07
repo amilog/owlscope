@@ -1,0 +1,39 @@
+---
+title: FAQ
+description: Frequent questions about OwlScope.
+---
+
+## Is OwlScope free?
+
+Yes. MIT licensed. Source on [GitHub](https://github.com/YOUR_USERNAME/owlscope).
+
+## Does my data leave my machine?
+
+No. The desktop app runs a WebSocket server on `localhost`. Your SDK connects
+to it directly. Nothing is uploaded anywhere.
+
+## Does it work in production?
+
+The SDK is **no-op in production builds** (`NODE_ENV=production` for JS,
+`kReleaseMode` for Flutter). Even if shipped, it does nothing.
+
+## How is this different from Reactotron?
+
+OwlScope is a spiritual successor — same idea, modern stack, multi-platform
+SDK, and active development. Reactotron focuses on React Native; OwlScope
+covers JS, RN, Flutter, and Node.js out of the box.
+
+## How does the desktop app connect to my phone?
+
+For Android over USB: run `dart run owlscope:reverse` once after plugging in
+the device. For iOS / LAN: use your Mac's LAN IP as the `host`.
+
+## Can I write my own UI?
+
+Yes. The wire protocol is documented in [`@owlscope/protocol`](https://github.com/YOUR_USERNAME/owlscope/tree/main/packages/protocol).
+The desktop app is just one consumer.
+
+## Where do I report bugs?
+
+[GitHub Issues](https://github.com/YOUR_USERNAME/owlscope/issues) or
+[Discord](https://discord.gg/owlscope).

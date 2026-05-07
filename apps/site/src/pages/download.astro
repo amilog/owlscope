@@ -1,0 +1,152 @@
+---
+import Landing from '../layouts/Landing.astro';
+import PlatformDetect from '../components/PlatformDetect.tsx';
+---
+
+<Landing title="Download · OwlScope" description="Download OwlScope for macOS, Windows, or Linux. Free, open source, no account.">
+  <section class="download-page">
+    <div class="hero">
+      <h1>Download OwlScope</h1>
+      <p>Free, open source. No account, no telemetry, no ads.</p>
+    </div>
+
+    <PlatformDetect client:load />
+
+    <details class="install-help">
+      <summary>
+        <span class="emoji" aria-hidden="true">🍎</span>
+        First-time install on macOS?
+      </summary>
+      <div class="content">
+        <p>
+          Since OwlScope is open source and free, we don't pay Apple's $99/yr
+          notarisation fee. macOS will show a one-time warning the first time
+          you launch.
+        </p>
+        <p>Bypass in 10 seconds:</p>
+        <ol>
+          <li>Drag OwlScope to your <strong>Applications</strong> folder</li>
+          <li><strong>Right-click</strong> OwlScope → <strong>Open</strong></li>
+          <li>Click <strong>Open</strong> in the dialog</li>
+          <li>Done — you'll never see this again</li>
+        </ol>
+        <p class="note">
+          On Apple Silicon, the system may ask once for permission to receive
+          incoming WS connections. Allow it — that's the desktop server
+          listening on <code>localhost:9090</code>.
+        </p>
+      </div>
+    </details>
+
+    <section class="build">
+      <h2>Build from source</h2>
+      <p>Prefer to compile yourself?</p>
+      <pre><code>git clone https://github.com/YOUR_USERNAME/owlscope
+cd owlscope
+npm install
+npm run build
+npm run dev</code></pre>
+    </section>
+
+    <section class="reqs">
+      <h2>System requirements</h2>
+      <ul>
+        <li><strong>macOS:</strong> 10.15 (Catalina) or newer · Intel &amp; Apple Silicon</li>
+        <li><strong>Windows:</strong> Windows 10 or newer · x64</li>
+        <li><strong>Linux:</strong> any distro with glibc 2.28+ (Ubuntu 20.04+, Fedora 32+)</li>
+      </ul>
+    </section>
+  </section>
+</Landing>
+
+<style>
+  .download-page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  .hero {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .hero h1 {
+    font-size: 3rem;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+  .hero p {
+    color: var(--sl-color-gray-2);
+    font-size: 18px;
+  }
+  .install-help {
+    margin-top: 48px;
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .install-help summary {
+    padding: 18px 22px;
+    cursor: pointer;
+    font-weight: 500;
+    list-style: none;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .install-help summary::-webkit-details-marker { display: none; }
+  .install-help summary::after {
+    content: '+';
+    margin-left: auto;
+    color: var(--sl-color-gray-2);
+    font-size: 20px;
+  }
+  .install-help[open] summary::after { content: '−'; }
+  .install-help .content {
+    padding: 0 22px 22px;
+    color: var(--sl-color-gray-1);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .install-help ol {
+    padding-left: 22px;
+    margin: 12px 0;
+  }
+  .install-help .note {
+    background: var(--sl-color-gray-5);
+    border-left: 3px solid var(--sl-color-accent);
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-top: 16px;
+  }
+  .build, .reqs { margin-top: 48px; }
+  .build h2, .reqs h2 {
+    font-size: 22px;
+    margin: 0 0 12px;
+  }
+  .build pre {
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    padding: 18px 20px;
+    border-radius: 12px;
+    font-family: var(--sl-font-mono);
+    font-size: 13px;
+    overflow-x: auto;
+  }
+  .reqs ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .reqs li {
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+</style>
