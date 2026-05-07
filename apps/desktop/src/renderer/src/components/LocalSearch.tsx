@@ -28,7 +28,7 @@ export const LocalSearch = forwardRef<HTMLInputElement, LocalSearchProps>(
 
     return (
       <div
-        className="flex items-center gap-2 px-3 py-1.5 bg-bg-elevated border-b border-border-subtle/60"
+        className="flex items-center gap-2 px-3 py-1.5 bg-bg-elevated border-b border-purple-500/10"
         onClick={(e) => e.stopPropagation()}
       >
         <Search className="w-3 h-3 text-text-muted" />

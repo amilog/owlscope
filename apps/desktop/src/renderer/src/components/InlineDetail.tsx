@@ -176,7 +176,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
 
 function SectionHeader({ label, copyText }: { label: string; copyText?: string }) {
   return (
-    <div className="px-3 py-1.5 flex items-center justify-between bg-bg-elevated/60 border-b border-border-subtle/60">
+    <div className="px-3 py-1.5 flex items-center justify-between bg-bg-elevated/60 border-b border-purple-500/10">
       <span className="text-[10px] uppercase tracking-wider text-text-muted">{label}</span>
       {copyText !== undefined && copyText !== '' && (
         <CopyButton text={copyText} label="Copy" />
@@ -206,7 +206,7 @@ function KeyValue({
     return <div className="px-3 py-2 text-text-muted text-[11px]">{empty}</div>;
   }
   return (
-    <div className="text-[11px] divide-y divide-border-subtle/40">
+    <div className="text-[11px] divide-y divide-purple-500/10">
       {entries.map(([k, v]) => (
         <div key={k} className="flex gap-2 px-3 py-1">
           <span className="w-32 shrink-0 text-text-muted">{highlight(k, query)}</span>
@@ -380,7 +380,7 @@ function StateDetail({ event }: { event: DebugEvent }) {
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
-      <div className="px-3 py-2 border-b border-border-subtle/60 flex items-center gap-3 text-[11px]">
+      <div className="px-3 py-2 border-b border-purple-500/10 flex items-center gap-3 text-[11px]">
         <span className="text-owl-event font-medium">{event.type}</span>
         <span className="flex-1 truncate text-text-primary">
           {p.provider?.name ?? p.type ?? 'state'}
@@ -392,7 +392,7 @@ function StateDetail({ event }: { event: DebugEvent }) {
           {new Date(event.timestamp).toISOString().slice(11, 23)}
         </span>
       </div>
-      <div className="grid grid-cols-2 divide-x divide-border-subtle/60">
+      <div className="grid grid-cols-2 divide-x divide-purple-500/10">
         <div className="min-w-0">
           <SectionHeader label="Previous" copyText={previousText} />
           <div className="px-3 py-2 max-h-[320px] overflow-auto">
@@ -426,7 +426,7 @@ function NetworkDetail({ event, query = '' }: { event: DebugEvent; query?: strin
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
-      <div className="px-3 py-2 border-b border-border-subtle/60 flex items-center gap-3 text-[11px]">
+      <div className="px-3 py-2 border-b border-purple-500/10 flex items-center gap-3 text-[11px]">
         <span className="text-owl-network font-medium">{p.method ?? 'GET'}</span>
         <span className={`tabular-nums ${statusColor(p.status, p.error)}`}>
           {p.error ? 'ERR' : (p.status ?? '–')}
@@ -439,7 +439,7 @@ function NetworkDetail({ event, query = '' }: { event: DebugEvent; query?: strin
         <CopyButton text={curl} label="cURL" />
       </div>
 
-      <div className="flex border-b border-border-subtle/60">
+      <div className="flex border-b border-purple-500/10">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -604,7 +604,7 @@ function GenericDetail({
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
-      <div className="px-3 py-2 border-b border-border-subtle/60 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-text-secondary">
+      <div className="px-3 py-2 border-b border-purple-500/10 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-text-secondary">
         <span>
           <span className="text-text-muted">time </span>
           <span className="tabular-nums">{new Date(event.timestamp).toISOString()}</span>
@@ -643,7 +643,7 @@ function GenericDetail({
       </div>
 
       {event.meta?.stackTrace && (
-        <div className="border-t border-border-subtle/60">
+        <div className="border-t border-purple-500/10">
           <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-text-muted">
             Stack
           </div>
@@ -690,10 +690,13 @@ export function InlineDetail({ event }: { event: DebugEvent }) {
 
   return (
     <div
-      className="bg-bg-elevated/60 border-y border-border-subtle/60 text-text-primary"
+      // Render the inline detail as a "quoted" card: thick purple left
+      // rule plus a soft brand-tinted outline, all corners rounded, and a
+      // small gap above/below so it visually separates from the next row.
+      className="relative mx-2 my-1.5 rounded-md border border-purple-500/20 border-l-[3px] border-l-purple-500/60 bg-bg-primary text-text-primary overflow-hidden"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="sticky top-0 z-10 bg-bg-elevated">
+      <div className="sticky top-0 z-10 bg-bg-primary">
         <LocalSearch
           ref={inputRef}
           value={query}
@@ -724,10 +727,10 @@ function StateDetailWithQuery({
   const p = event.payload as StatePayload;
   return (
     <div>
-      <div className="px-3 py-2 border-b border-border-subtle/60 text-[11px] text-text-secondary">
+      <div className="px-3 py-2 border-b border-purple-500/10 text-[11px] text-text-secondary">
         {p.provider?.name ?? 'state'}
       </div>
-      <div className="grid grid-cols-2 divide-x divide-border-subtle/60">
+      <div className="grid grid-cols-2 divide-x divide-purple-500/10">
         <div className="px-3 py-2 max-h-[320px] overflow-auto">
           <div className="text-[10px] uppercase tracking-wider text-text-muted mb-1">
             Previous

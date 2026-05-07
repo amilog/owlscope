@@ -21,7 +21,7 @@ export default function App() {
   const clearEvents = useEventsStore((s) => s.clearEvents);
   const togglePause = useEventsStore((s) => s.togglePause);
   const setSearch = useEventsStore((s) => s.setSearch);
-  const selectEvent = useEventsStore((s) => s.selectEvent);
+  const collapseAll = useEventsStore((s) => s.collapseAll);
   const addClient = useClientsStore((s) => s.addClient);
   const removeClient = useClientsStore((s) => s.removeClient);
   const setServerStatus = useClientsStore((s) => s.setServerStatus);
@@ -69,13 +69,13 @@ export default function App() {
         const el = document.querySelector<HTMLInputElement>('input[placeholder^="Search"]');
         el?.focus();
       } else if (e.key === 'Escape') {
-        selectEvent(null);
+        collapseAll();
         setSearch('');
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [clearEvents, togglePause, selectEvent, setSearch]);
+  }, [clearEvents, togglePause, collapseAll, setSearch]);
 
   return (
     <div className="h-screen w-screen flex flex-col bg-bg-primary text-text-primary">

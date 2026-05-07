@@ -17,13 +17,17 @@ export interface Filters {
 
 interface EventsState {
   events: DebugEvent[];
-  selectedEventId: string | null;
+  /** Every row whose inline detail is currently open. Multiple events can
+   *  be expanded at once so the user can compare two requests / states /
+   *  errors side-by-side. */
+  expandedEventIds: Set<string>;
   isPaused: boolean;
   filters: Filters;
 
   addEvent: (event: DebugEvent) => void;
   addEvents: (events: DebugEvent[]) => void;
-  selectEvent: (id: string | null) => void;
+  toggleExpand: (id: string) => void;
+  collapseAll: () => void;
   clearEvents: () => void;
   togglePause: () => void;
   setSearch: (search: string) => void;
@@ -36,7 +40,7 @@ interface EventsState {
 
 export const useEventsStore = create<EventsState>((set, get) => ({
   events: [],
-  selectedEventId: null,
+  expandedEventIds: new Set<string>(),
   isPaused: false,
   filters: {
     types: new Set<EventType>(),
@@ -64,9 +68,18 @@ export const useEventsStore = create<EventsState>((set, get) => ({
     });
   },
 
-  selectEvent: (id) => set({ selectedEventId: id }),
+  toggleExpand: (id) =>
+    set((s) => {
+      const next = new Set(s.expandedEventIds);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return { expandedEventIds: next };
+    }),
 
-  clearEvents: () => set({ events: [], selectedEventId: null }),
+  collapseAll: () => set({ expandedEventIds: new Set<string>() }),
+
+  clearEvents: () =>
+    set({ events: [], expandedEventIds: new Set<string>() }),
 
   togglePause: () => set((s) => ({ isPaused: !s.isPaused })),
 
@@ -114,6 +127,28 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       },
     }),
 }));
+
+/** Console events whose entire body is just frame-drawing characters
+ *  (box edges, ASCII rules) or ANSI colour escapes. Pretty-print loggers
+ *  like Dio's `PrettyDioLogger` emit one of these for every line of their
+ *  banner, which clutters the list but adds zero information. We hide them
+ *  from panel listings — they're still in the underlying events store so
+ *  counts stay correct. */
+export function isNoiseConsole(event: DebugEvent): boolean {
+  if (event.type !== 'console') return false;
+  const args = (event.payload as { args?: unknown[] } | null)?.args;
+  if (!Array.isArray(args) || args.length === 0) return true;
+  const text = args
+    .map((a) => (typeof a === 'string' ? a : ''))
+    .join(' ')
+    // Strip ANSI escape codes — Dio's logger wraps lines in colour codes.
+    .replace(/\x1b\[[\d;]*m/g, '')
+    .replace(/\[\d+(;\d+)*m/g, '');
+  const trimmed = text.trim();
+  if (!trimmed) return true;
+  // Box drawing block U+2500–U+259F + common ASCII separators / pipes / dots.
+  return /^[─-▟\s|\-=_+*.·●○•]+$/.test(trimmed);
+}
 
 export function compileSearch(search: string): RegExp | string | null {
   if (!search) return null;

@@ -53,7 +53,7 @@ function PerfRow({
     (p.slowFrames ?? 0) > 0;
 
   const rowClass = [
-    'flex items-center gap-2 h-7 px-3 text-[11px] cursor-pointer border-b border-border-subtle/40',
+    'flex items-center gap-2 h-8 px-3 text-[11px] cursor-pointer border-b border-border-subtle/40',
     selected ? 'row-selected' : 'row-hover',
     isSlow ? 'row-warn' : '',
   ]
@@ -81,8 +81,8 @@ function PerfRow({
 export function PerformancePanel() {
   const events = useEventsStore((s) => s.events);
   const filters = useEventsStore((s) => s.filters);
-  const selectedEventId = useEventsStore((s) => s.selectedEventId);
-  const selectEvent = useEventsStore((s) => s.selectEvent);
+  const expanded = useEventsStore((s) => s.expandedEventIds);
+  const toggleExpand = useEventsStore((s) => s.toggleExpand);
   const order = useUIStore((s) => s.order);
   const isPaused = useEventsStore((s) => s.isPaused);
 
@@ -106,8 +106,8 @@ export function PerformancePanel() {
   }, [sorted.length, order, isPaused]);
 
   const toggleSelect = useCallback(
-    (id: string) => selectEvent(selectedEventId === id ? null : id),
-    [selectedEventId, selectEvent],
+    (id: string) => toggleExpand(id),
+    [toggleExpand],
   );
 
   if (sorted.length === 0) {
@@ -120,7 +120,7 @@ export function PerformancePanel() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="h-7 shrink-0 flex items-center gap-2 px-3 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface">
+      <div className="h-8 shrink-0 flex items-center gap-2 px-3 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface">
         <span className="w-[92px] shrink-0">Time</span>
         <span className="w-24 shrink-0">Type</span>
         <span className="flex-1">Detail</span>
@@ -135,8 +135,8 @@ export function PerformancePanel() {
           followOutput={order === 'newest-bottom' && !isPaused ? 'auto' : false}
           itemContent={(_index, ev) => (
             <div>
-              <PerfRow event={ev} selected={ev.id === selectedEventId} onSelect={toggleSelect} />
-              {ev.id === selectedEventId && <InlineDetail event={ev} />}
+              <PerfRow event={ev} selected={expanded.has(ev.id)} onSelect={toggleSelect} />
+              {expanded.has(ev.id) && <InlineDetail event={ev} />}
             </div>
           )}
         />

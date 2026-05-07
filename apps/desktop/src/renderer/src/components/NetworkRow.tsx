@@ -60,7 +60,7 @@ function NetworkRowImpl({ event, selected, onSelect }: Props) {
   const isError = !!p.error || p.status === 0;
 
   const rowClass = [
-    'flex items-center gap-2 h-7 text-[11px] cursor-pointer border-b border-border-subtle/40',
+    'flex items-center gap-2 h-8 text-[11px] cursor-pointer border-b border-border-subtle/40',
     narrow ? 'px-2' : 'px-3',
     selected ? 'row-selected' : 'row-hover',
     isError ? 'row-error' : '',

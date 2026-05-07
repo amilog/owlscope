@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect, useCallback } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import { useEventsStore, matchEvent } from '@/store/events';
+import { useEventsStore, matchEvent, isNoiseConsole } from '@/store/events';
 import { useUIStore } from '@/store/ui';
 import { LogRow } from '@/components/LogRow';
 import { InlineDetail } from '@/components/InlineDetail';
@@ -11,13 +11,13 @@ import type { DebugEvent } from '@owlscope/protocol';
 export function TimelinePanel() {
   const events = useEventsStore((s) => s.events);
   const filters = useEventsStore((s) => s.filters);
-  const selectedEventId = useEventsStore((s) => s.selectedEventId);
-  const selectEvent = useEventsStore((s) => s.selectEvent);
+  const expanded = useEventsStore((s) => s.expandedEventIds);
+  const toggleExpand = useEventsStore((s) => s.toggleExpand);
   const order = useUIStore((s) => s.order);
   const isPaused = useEventsStore((s) => s.isPaused);
 
   const sorted = useMemo(() => {
-    const out = events.filter((e) => matchEvent(e, filters));
+    const out = events.filter((e) => !isNoiseConsole(e) && matchEvent(e, filters));
     return order === 'newest-top' ? out.reverse() : out;
   }, [events, filters, order]);
 
@@ -36,8 +36,8 @@ export function TimelinePanel() {
   }, [sorted.length, order, isPaused]);
 
   const toggleSelect = useCallback(
-    (id: string) => selectEvent(selectedEventId === id ? null : id),
-    [selectedEventId, selectEvent],
+    (id: string) => toggleExpand(id),
+    [toggleExpand],
   );
 
   if (sorted.length === 0) {
@@ -60,8 +60,8 @@ export function TimelinePanel() {
         followOutput={order === 'newest-bottom' && !isPaused ? 'auto' : false}
         itemContent={(_index, ev) => (
           <div>
-            <LogRow event={ev} selected={ev.id === selectedEventId} onSelect={toggleSelect} />
-            {ev.id === selectedEventId && <InlineDetail event={ev} />}
+            <LogRow event={ev} selected={expanded.has(ev.id)} onSelect={toggleSelect} />
+            {expanded.has(ev.id) && <InlineDetail event={ev} />}
           </div>
         )}
       />

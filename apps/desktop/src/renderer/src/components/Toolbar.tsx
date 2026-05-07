@@ -157,7 +157,7 @@ export function Toolbar() {
         ) : (
           <ArrowUpToLine className="w-3.5 h-3.5" />
         )}
-        {!narrow && (order === 'newest-bottom' ? 'Newest ↓' : 'Newest ↑')}
+        {!narrow && 'Newest'}
       </button>
 
       <button

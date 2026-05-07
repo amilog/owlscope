@@ -9,8 +9,8 @@ import type { DebugEvent } from '@owlscope/protocol';
 export function ErrorsPanel() {
   const events = useEventsStore((s) => s.events);
   const filters = useEventsStore((s) => s.filters);
-  const selectedEventId = useEventsStore((s) => s.selectedEventId);
-  const selectEvent = useEventsStore((s) => s.selectEvent);
+  const expanded = useEventsStore((s) => s.expandedEventIds);
+  const toggleExpand = useEventsStore((s) => s.toggleExpand);
   const order = useUIStore((s) => s.order);
   const isPaused = useEventsStore((s) => s.isPaused);
 
@@ -36,8 +36,8 @@ export function ErrorsPanel() {
   }, [sorted.length, order, isPaused]);
 
   const toggleSelect = useCallback(
-    (id: string) => selectEvent(selectedEventId === id ? null : id),
-    [selectedEventId, selectEvent],
+    (id: string) => toggleExpand(id),
+    [toggleExpand],
   );
 
   if (sorted.length === 0) {
@@ -58,8 +58,8 @@ export function ErrorsPanel() {
         followOutput={order === 'newest-bottom' && !isPaused ? 'auto' : false}
         itemContent={(_index, ev) => (
           <div>
-            <LogRow event={ev} selected={ev.id === selectedEventId} onSelect={toggleSelect} />
-            {ev.id === selectedEventId && <InlineDetail event={ev} />}
+            <LogRow event={ev} selected={expanded.has(ev.id)} onSelect={toggleSelect} />
+            {expanded.has(ev.id) && <InlineDetail event={ev} />}
           </div>
         )}
       />

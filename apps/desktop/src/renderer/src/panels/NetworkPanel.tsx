@@ -9,8 +9,8 @@ import type { DebugEvent } from '@owlscope/protocol';
 export function NetworkPanel() {
   const events = useEventsStore((s) => s.events);
   const filters = useEventsStore((s) => s.filters);
-  const selectedEventId = useEventsStore((s) => s.selectedEventId);
-  const selectEvent = useEventsStore((s) => s.selectEvent);
+  const expanded = useEventsStore((s) => s.expandedEventIds);
+  const toggleExpand = useEventsStore((s) => s.toggleExpand);
   const order = useUIStore((s) => s.order);
   const narrow = useUIStore((s) => s.sidebarCollapsed);
   const isPaused = useEventsStore((s) => s.isPaused);
@@ -39,8 +39,8 @@ export function NetworkPanel() {
   }, [sorted.length, order, isPaused]);
 
   const toggleSelect = useCallback(
-    (id: string) => selectEvent(selectedEventId === id ? null : id),
-    [selectedEventId, selectEvent],
+    (id: string) => toggleExpand(id),
+    [toggleExpand],
   );
 
   if (sorted.length === 0) {
@@ -54,7 +54,7 @@ export function NetworkPanel() {
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       <div
-        className={`h-7 shrink-0 flex items-center gap-2 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface ${
+        className={`h-8 shrink-0 flex items-center gap-2 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface ${
           narrow ? 'px-2' : 'px-3'
         }`}
       >
@@ -76,10 +76,10 @@ export function NetworkPanel() {
             <div>
               <NetworkRow
                 event={ev}
-                selected={ev.id === selectedEventId}
+                selected={expanded.has(ev.id)}
                 onSelect={toggleSelect}
               />
-              {ev.id === selectedEventId && <InlineDetail event={ev} />}
+              {expanded.has(ev.id) && <InlineDetail event={ev} />}
             </div>
           )}
         />

@@ -153,7 +153,7 @@ function LogRowImpl({ event, selected, onSelect }: LogRowProps) {
   const isWarn = event.level === 'warn';
 
   const rowClass = [
-    'flex items-center gap-2 h-6 text-[11px] cursor-pointer border-b border-border-subtle/40',
+    'flex items-center gap-2 h-7 text-[11px] cursor-pointer border-b border-border-subtle/40',
     narrow ? 'px-2' : 'px-3',
     selected ? 'row-selected' : 'row-hover',
     isError ? 'row-error' : '',
