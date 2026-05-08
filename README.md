@@ -1,7 +1,6 @@
 # OwlScope
 
 > Mobile debug & monitoring tool — for **React Native** and **Flutter**.
-> The mobile-first alternative to Reactotron.
 
 <p align="center">
   <img src="apps/desktop/src/renderer/public/logo.png" width="120" alt="OwlScope" />
@@ -22,7 +21,7 @@ HTTP traffic, errors, frame timings, Riverpod / Bloc / Redux state changes.
 ## React Native
 
 ```sh
-npm install owlscope@rn
+npm install owlscope
 npx owlscope setup
 ```
 

@@ -9,7 +9,7 @@ Android emulator and Android device — without per-target configuration.
 ## Setup
 
 ```sh
-npm install owlscope@rn
+npm install owlscope
 npx owlscope setup
 ```
 
@@ -69,6 +69,5 @@ allow it.
 `npx owlscope setup` to redo `adb reverse` (it's lost on every reboot
 or USB unplug).
 
-**Conflict with Reactotron.** Both default to port `9090`. Comment out
-the Reactotron import or pass `port: 9091` to both OwlScope and
-desktop.
+**Port `9090` already in use.** Pass `port: 9091` to both OwlScope and
+the desktop app, or stop the conflicting service.

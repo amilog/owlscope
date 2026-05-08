@@ -14,12 +14,16 @@ interface NetworkPayload {
 }
 
 function formatTime(ts: number) {
+  return new Date(ts).toTimeString().slice(0, 8);
+}
+
+function formatTimeFull(ts: number) {
   const d = new Date(ts);
   return d.toTimeString().slice(0, 8) + '.' + String(d.getMilliseconds()).padStart(3, '0');
 }
 
 function formatTimeShort(ts: number) {
-  return new Date(ts).toTimeString().slice(0, 8);
+  return new Date(ts).toTimeString().slice(0, 5);
 }
 
 function statusColor(status?: number, error?: string): string {
@@ -71,8 +75,9 @@ function NetworkRowImpl({ event, selected, onSelect }: Props) {
   return (
     <div className={rowClass} onClick={() => onSelect(event.id)}>
       <span
+        title={formatTimeFull(event.timestamp)}
         className={`shrink-0 overflow-hidden text-text-muted tabular-nums ${
-          narrow ? 'w-[60px]' : 'w-[92px]'
+          narrow ? 'w-[44px]' : 'w-[64px]'
         }`}
       >
         {narrow ? formatTimeShort(event.timestamp) : formatTime(event.timestamp)}
@@ -84,12 +89,18 @@ function NetworkRowImpl({ event, selected, onSelect }: Props) {
       {!narrow && (
         <span className="w-32 shrink-0 truncate text-text-muted">{host(p.url ?? '')}</span>
       )}
-      <span className="flex-1 min-w-0 truncate text-text-primary">
-        {shortenUrl(p.url ?? '')}
-        {p.error && <span className="ml-2 text-owl-error">{p.error}</span>}
+      <span
+        title={p.url ?? ''}
+        className="flex-1 min-w-0 truncate text-text-primary"
+        style={{ direction: 'rtl', textAlign: 'left' }}
+      >
+        <bdo dir="ltr">
+          {shortenUrl(p.url ?? '')}
+          {p.error && <span className="ml-2 text-owl-error">{p.error}</span>}
+        </bdo>
       </span>
       {!narrow && (
-        <span className="w-14 shrink-0 text-right text-text-muted tabular-nums">
+        <span className="w-12 shrink-0 text-right text-text-muted tabular-nums">
           {p.duration !== undefined ? `${Math.round(p.duration)}ms` : '–'}
         </span>
       )}

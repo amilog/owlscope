@@ -30,14 +30,7 @@ Yes — that's why both SDKs ship a `setup` command:
 After the one-time setup, all four targets (sim/device, both platforms)
 work without further tweaking.
 
-## How is this different from Reactotron?
-
-OwlScope is a spiritual successor — same idea, modern stack, with first-
-class Flutter support. The desktop UI is virtualised and handles 50k
-events at 60 fps; the protocol is documented; you can write your own
-client.
-
-## My port 9090 is taken (Reactotron, etc.).
+## My port 9090 is taken.
 
 Pass `port: 9091` to both `startOwlScope()` / `owlscopeAuto()` and
 launch the desktop with the same port. Or stop the conflicting service.

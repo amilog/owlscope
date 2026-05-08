@@ -58,12 +58,12 @@ export function NetworkPanel() {
           narrow ? 'px-2' : 'px-3'
         }`}
       >
-        <span className={`shrink-0 ${narrow ? 'w-[60px]' : 'w-[92px]'}`}>Time</span>
+        <span className={`shrink-0 ${narrow ? 'w-[44px]' : 'w-[64px]'}`}>Time</span>
         <span className="w-12 shrink-0">Method</span>
         <span className="w-12 shrink-0">Status</span>
         {!narrow && <span className="w-32 shrink-0">Host</span>}
         <span className="flex-1 min-w-0">Path</span>
-        {!narrow && <span className="w-14 shrink-0 text-right">Time</span>}
+        {!narrow && <span className="w-12 shrink-0 text-right">Dur</span>}
       </div>
       <div className="flex-1 min-h-0">
         <Virtuoso

@@ -130,7 +130,7 @@ export function HomePanel() {
 {QUICK_START_RN}
           </pre>
           <p className="mt-2 text-[11px] text-text-muted">
-            <code className="font-mono">npm install owlscope@rn</code>. Auto-detects
+            <code className="font-mono">npm install owlscope</code>. Auto-detects
             host: <code className="font-mono">localhost</code> on iOS sim,{' '}
             <code className="font-mono">10.0.2.2</code> on Android emulator,
             Metro bundler IP on physical devices.

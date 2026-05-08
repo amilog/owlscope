@@ -1,7 +1,6 @@
 # owlscope
 
 > Universal debug & monitoring tool for **Flutter** apps.
-> The mobile-first alternative to Reactotron.
 
 ```yaml
 # pubspec.yaml

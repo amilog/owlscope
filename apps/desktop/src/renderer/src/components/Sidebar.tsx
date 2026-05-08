@@ -126,7 +126,11 @@ export function Sidebar() {
               <button
                 key={c.clientId}
                 onClick={() => setClientFilter(active ? null : c.clientId)}
-                title={c.handshake.name}
+                title={
+                  c.handshake.framework
+                    ? `${c.handshake.name} · ${c.handshake.framework}`
+                    : c.handshake.name
+                }
                 className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${
                   active
                     ? 'bg-purple-500/10 text-purple-400'
@@ -209,6 +213,11 @@ export function Sidebar() {
             >
               <Icon className="w-3.5 h-3.5" />
               <span className="flex-1 text-left truncate">{c.handshake.name}</span>
+              {c.handshake.framework && (
+                <span className="text-[9px] uppercase tracking-wider text-text-muted">
+                  {c.handshake.framework}
+                </span>
+              )}
               <span className="w-1.5 h-1.5 rounded-full bg-owl-success glow-dot text-owl-success" />
             </button>
           );

@@ -1,3 +1,4 @@
+import { NativeModules, Platform } from 'react-native';
 import { configure } from './index.js';
 
 export interface StartOptions {
@@ -16,53 +17,31 @@ export interface StartOptions {
   silent?: boolean;
 }
 
-interface RnPlatform {
-  OS: 'ios' | 'android' | string;
-}
-interface RnSourceCode {
-  scriptURL?: string;
-}
-interface RnNativeModules {
-  SourceCode?: RnSourceCode;
-}
-
 /** Resolve the host to use for the WebSocket connection back to the dev Mac.
  *
- *  - **Android emulator**: `10.0.2.2` (the emulator's NAT alias for the host)
- *  - **iOS simulator**: `localhost`
- *  - **Physical device** (USB / LAN): the IP of the Metro bundler — read off
- *    `NativeModules.SourceCode.scriptURL`, which always points at the dev
- *    machine when running through Metro.
+ *  Strategy: trust Metro's `scriptURL` everywhere, because whatever host
+ *  Metro is reachable on is also where the OwlScope desktop is — both
+ *  run on the dev Mac. This automatically does the right thing across
+ *  every target without per-platform branching:
  *
- *  Falls back to `localhost` if React Native can't be required (for example
- *  when this entry is imported from a Jest test). */
+ *  - **iOS simulator** → scriptURL host is `localhost`
+ *  - **iOS physical device** → scriptURL host is the Mac's LAN IP
+ *  - **Android emulator** → scriptURL host is `10.0.2.2`
+ *  - **Android USB device** (with `adb reverse`) → scriptURL host is `localhost`
+ *  - **Android Wi-Fi device** → scriptURL host is the Mac's LAN IP
+ *
+ *  Falls back to `10.0.2.2` on Android / `localhost` elsewhere only when
+ *  Metro hasn't published a scriptURL (eg. JSC/Hermes loaded a baked
+ *  bundle). Same pattern Reactotron uses.
+ */
 function resolveHost(): string {
-  let Platform: RnPlatform | undefined;
-  let NativeModules: RnNativeModules | undefined;
-  try {
-    const req = (globalThis as unknown as { require?: (m: string) => unknown }).require;
-    if (typeof req !== 'function') return 'localhost';
-    const rn = req('react-native') as {
-      Platform: RnPlatform;
-      NativeModules: RnNativeModules;
-    };
-    Platform = rn.Platform;
-    NativeModules = rn.NativeModules;
-  } catch {
-    return 'localhost';
-  }
-
-  if (Platform?.OS === 'android') return '10.0.2.2';
-
-  const scriptURL = NativeModules?.SourceCode?.scriptURL;
+  const scriptURL = (NativeModules as { SourceCode?: { scriptURL?: string } })
+    .SourceCode?.scriptURL;
   if (scriptURL) {
-    try {
-      return new URL(scriptURL).hostname;
-    } catch {
-      /* fall through */
-    }
+    const hostname = scriptURL.split('://')[1]?.split(':')[0]?.split('/')[0];
+    if (hostname && hostname !== '0.0.0.0') return hostname;
   }
-  return 'localhost';
+  return Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 }
 
 /** One-line installer for React Native apps.
@@ -73,9 +52,9 @@ function resolveHost(): string {
  *  if (__DEV__) startOwlScope({ name: 'my-app' });
  *  ```
  *
- *  Picks a sane host automatically (Metro bundler IP on a real device,
- *  `10.0.2.2` on the Android emulator, `localhost` on the iOS simulator)
- *  and installs the console + network + errors plugins.
+ *  Picks a sane host automatically (Metro bundler IP on a real iOS device,
+ *  `10.0.2.2` on the Android emulator, `localhost` on the iOS simulator and
+ *  Android USB) and installs the console + network + errors plugins.
  *
  *  Production builds are no-op — the function returns early when
  *  `process.env.NODE_ENV === 'production'`, so it is safe to leave in your
@@ -88,12 +67,21 @@ export function startOwlScope(opts: StartOptions = {}): void {
   }
 
   const host = opts.host ?? resolveHost();
+  const port = opts.port ?? 9090;
+  const silent = opts.silent ?? true;
+
+  if (!silent) {
+    // eslint-disable-next-line no-console
+    console.info(`[owlscope] connecting to ws://${host}:${port}`);
+  }
 
   configure({
-    name: opts.name ?? detectAppName() ?? 'rn-app',
+    name: opts.name ?? 'rn-app',
+    platform: 'react-native',
+    framework: frameworkLabel(),
     host,
-    port: opts.port ?? 9090,
-    silent: opts.silent ?? true,
+    port,
+    silent,
     plugins: {
       console: true,
       network: true,
@@ -102,18 +90,11 @@ export function startOwlScope(opts: StartOptions = {}): void {
   });
 }
 
-/** Best-effort: read the consumer's app.json so we can default the
- *  client name to "<their-app>" rather than the generic "rn-app". Falls
- *  back to undefined if Metro doesn't make app.json reachable from this
- *  package's directory (which it usually does — it lives at the project
- *  root of every RN app). */
-function detectAppName(): string | undefined {
-  try {
-    const req = (globalThis as unknown as { require?: (m: string) => unknown }).require;
-    if (typeof req !== 'function') return undefined;
-    const appJson = req('../../../app.json') as { name?: string; displayName?: string };
-    return appJson.name ?? appJson.displayName;
-  } catch {
-    return undefined;
-  }
+/** Carried in the handshake so the desktop sidebar can distinguish the
+ *  same app running on iOS vs Android (otherwise both rows show the
+ *  same name and are indistinguishable). */
+function frameworkLabel(): string {
+  if (Platform.OS === 'ios') return 'iOS';
+  if (Platform.OS === 'android') return 'Android';
+  return Platform.OS;
 }

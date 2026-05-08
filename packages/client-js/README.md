@@ -1,10 +1,9 @@
 # owlscope
 
 > Universal debug & monitoring tool for **React Native** apps.
-> The mobile-first alternative to Reactotron.
 
 ```sh
-npm install owlscope@rn
+npm install owlscope
 npx owlscope setup
 ```
 
