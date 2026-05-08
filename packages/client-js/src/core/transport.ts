@@ -2,8 +2,12 @@ import type {
   ClientToServerMessage,
   ServerToClientMessage,
   HandshakePayload,
-} from '@owlscope/protocol';
-import { DEFAULT_HOST, DEFAULT_PORT } from '@owlscope/protocol';
+} from '../protocol.js';
+
+// Inlined so the published SDK has no runtime dependency on the
+// monorepo-local `../protocol.js` package — only its types.
+const DEFAULT_HOST = 'localhost';
+const DEFAULT_PORT = 9090;
 
 export interface TransportConfig {
   url?: string;

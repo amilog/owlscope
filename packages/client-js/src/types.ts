@@ -1,4 +1,4 @@
-import type { LogLevel, Platform, EventType, DebugEvent } from '@owlscope/protocol';
+import type { LogLevel, Platform, EventType, DebugEvent } from './protocol.js';
 
 export type { LogLevel, Platform, EventType, DebugEvent };
 
@@ -14,8 +14,6 @@ export interface PluginConfig {
   console?: boolean;
   network?: boolean;
   errors?: boolean;
-  performance?: boolean;
-  storage?: boolean;
   redux?: boolean;
   // Allow additional adapter-driven plugins:
   [k: string]: boolean | undefined;

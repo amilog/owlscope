@@ -168,79 +168,9 @@ declare module 'astro:content' {
 } & { render(): Render[".mdx"] };
 };
 "docs": {
-"advanced/ci-integration.mdx": {
-	id: "advanced/ci-integration.mdx";
-  slug: "advanced/ci-integration";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"advanced/custom-plugins.mdx": {
-	id: "advanced/custom-plugins.mdx";
-  slug: "advanced/custom-plugins";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"advanced/security.mdx": {
-	id: "advanced/security.mdx";
-  slug: "advanced/security";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"advanced/self-hosting.mdx": {
-	id: "advanced/self-hosting.mdx";
-  slug: "advanced/self-hosting";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"api-reference/adapters.mdx": {
-	id: "api-reference/adapters.mdx";
-  slug: "api-reference/adapters";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"api-reference/client.mdx": {
-	id: "api-reference/client.mdx";
-  slug: "api-reference/client";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"api-reference/events.mdx": {
-	id: "api-reference/events.mdx";
-  slug: "api-reference/events";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"api-reference/plugins.mdx": {
-	id: "api-reference/plugins.mdx";
-  slug: "api-reference/plugins";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
 "faq.mdx": {
 	id: "faq.mdx";
   slug: "faq";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"getting-started/configuration.mdx": {
-	id: "getting-started/configuration.mdx";
-  slug: "getting-started/configuration";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"getting-started/first-debug-session.mdx": {
-	id: "getting-started/first-debug-session.mdx";
-  slug: "getting-started/first-debug-session";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">
@@ -259,20 +189,6 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"getting-started/quick-start.mdx": {
-	id: "getting-started/quick-start.mdx";
-  slug: "getting-started/quick-start";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"guides/error-tracking.mdx": {
-	id: "guides/error-tracking.mdx";
-  slug: "guides/error-tracking";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
 "guides/flutter.mdx": {
 	id: "guides/flutter.mdx";
   slug: "guides/flutter";
@@ -280,51 +196,9 @@ declare module 'astro:content' {
   collection: "docs";
   data: InferEntrySchema<"docs">
 } & { render(): Render[".mdx"] };
-"guides/network-debugging.mdx": {
-	id: "guides/network-debugging.mdx";
-  slug: "guides/network-debugging";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"guides/nodejs.mdx": {
-	id: "guides/nodejs.mdx";
-  slug: "guides/nodejs";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
 "guides/react-native.mdx": {
 	id: "guides/react-native.mdx";
   slug: "guides/react-native";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"guides/react.mdx": {
-	id: "guides/react.mdx";
-  slug: "guides/react";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"guides/redux.mdx": {
-	id: "guides/redux.mdx";
-  slug: "guides/redux";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"guides/time-travel.mdx": {
-	id: "guides/time-travel.mdx";
-  slug: "guides/time-travel";
-  body: string;
-  collection: "docs";
-  data: InferEntrySchema<"docs">
-} & { render(): Render[".mdx"] };
-"guides/zustand.mdx": {
-	id: "guides/zustand.mdx";
-  slug: "guides/zustand";
   body: string;
   collection: "docs";
   data: InferEntrySchema<"docs">

@@ -9,24 +9,16 @@ interface Tab {
 
 const TABS: Tab[] = [
   {
-    label: 'React',
-    filename: 'main.tsx',
-    language: 'tsx',
-    code: `import 'owlscope/auto';
-import { createRoot } from 'react-dom/client';
-import App from './App';
-
-createRoot(document.getElementById('root')!).render(<App />);`,
-  },
-  {
     label: 'React Native',
     filename: 'index.js',
     language: 'js',
-    code: `import 'owlscope/auto';
+    code: `import { startOwlScope } from 'owlscope/rn';
+if (__DEV__) startOwlScope({ name: 'my-app' });
+
 import { AppRegistry } from 'react-native';
 import App from './App';
-
-AppRegistry.registerComponent('main', () => App);`,
+import { name as appName } from './app.json';
+AppRegistry.registerComponent(appName, () => App);`,
   },
   {
     label: 'Flutter',
@@ -38,16 +30,6 @@ import 'package:flutter/material.dart';
 void main() {
   owlscopeAuto(() => runApp(const MyApp()));
 }`,
-  },
-  {
-    label: 'Node.js',
-    filename: 'server.ts',
-    language: 'ts',
-    code: `import 'owlscope/auto';
-import express from 'express';
-
-const app = express();
-app.listen(3000);`,
   },
 ];
 

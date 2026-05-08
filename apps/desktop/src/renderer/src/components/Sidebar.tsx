@@ -77,7 +77,9 @@ export function Sidebar() {
         out.state++;
       }
       if (e.type === 'error' || e.level === 'error') out.errors++;
-      if (e.type === 'performance') out.performance++;
+      if (e.type === 'performance' || e.type.startsWith('performance:')) {
+        out.performance++;
+      }
     }
     return out;
   }, [events]);

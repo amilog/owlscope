@@ -1,21 +1,117 @@
 ---
 title: Flutter
-description: Capture print, http, errors, frames, and Riverpod/Bloc state in Flutter.
+description: Wire OwlScope into a Flutter app — every device, one setup.
 ---
 
-> Coming in the next release. The skeleton is here, the writing is in flight. <br />
-> If you can't wait, ping us on [Discord](https://discord.gg/owlscope) and we'll
-> pair-debug your stack live.
+Three commands, one line of code. Works in iOS Simulator, iOS device,
+Android emulator, Android device and macOS — without per-target
+configuration.
 
-## Overview
+## Setup
 
-This guide will cover:
+```yaml title="pubspec.yaml"
+dependencies:
+  owlscope: ^0.1.3
+```
 
-- The minimum setup for Flutter
-- Common debugging patterns
-- Advanced tips and gotchas
-- Troubleshooting
+```sh
+flutter pub get
+dart run owlscope:setup
+```
 
-For now, see [Installation](/getting-started/installation/) and
-[Configuration](/getting-started/configuration/) for the basics that apply
-across every platform.
+```dart title="lib/main.dart"
+import 'package:owlscope/auto.dart';
+import 'package:flutter/material.dart';
+
+void main() => owlscopeAuto(() => runApp(const MyApp()));
+```
+
+`dart run owlscope:setup` is idempotent — re-run any time. It:
+
+- patches `ios/Runner/Info.plist` with the keys iOS 14+ requires for
+  `ws://` traffic to a real device
+- adds `com.apple.security.network.client` entitlement on macOS
+- ensures Android `usesCleartextTraffic` for the dev WS endpoint
+- can be reverted at any time with `dart run owlscope:teardown`
+
+For a physical Android device plugged in via USB, also run:
+
+```sh
+dart run owlscope:reverse
+```
+
+This calls `adb reverse tcp:9090 tcp:9090` for every connected device.
+Re-run after a reboot or USB unplug.
+
+## Per-target behaviour
+
+| Target               | Host used               | One-time work |
+|----------------------|--------------------------|---------------|
+| iOS Simulator        | `localhost`              | none |
+| iOS Device (LAN)     | `localhost` → fallback hosts | `dart run owlscope:setup` |
+| Android Emulator     | `10.0.2.2`               | none |
+| Android Device (USB) | `localhost`              | `dart run owlscope:reverse` |
+| macOS desktop        | `localhost`              | `dart run owlscope:setup` |
+
+The transport tries `localhost`, then the fallback hosts (`10.0.2.2`,
+`10.0.3.2`) until one connects, so a single zero-config call covers
+both simulator and emulator.
+
+## Override the host
+
+Only when the auto-detection picks the wrong one (eg. a physical iOS
+device on a different Wi-Fi to the Mac):
+
+```dart
+owlscopeAuto(
+  () => runApp(const MyApp()),
+  name: 'my-app',
+  host: '192.168.1.50',
+  port: 9090,
+);
+```
+
+## What you get
+
+- Every `print` / `debugPrint` with full stack trace
+- Every HTTP request via `dart:io` `HttpClient` (covers `dio`,
+  `http`, and most other clients) with full request + response body
+- `FlutterError`, `PlatformDispatcher.onError`, async errors
+- Frame timings — FPS, build / raster, slow & frozen frames, RSS memory,
+  widget rebuilds (debug only)
+- `NavigatorObserver` — push, pop, replace
+
+Release builds (`kReleaseMode`) are no-op'd automatically.
+
+## Riverpod / Bloc / Redux
+
+Use the dedicated adapter for state inspection with side-by-side diff
+and time-travel:
+
+```yaml
+dependencies:
+  owlscope_riverpod: ^0.2.0
+```
+
+```dart
+ProviderScope(
+  observers: [if (kDebugMode) OwlScopeRiverpodObserver()],
+  child: const MyApp(),
+);
+```
+
+## Troubleshooting
+
+**No client shows up on Android.** Run `dart run owlscope:reverse` for
+USB, or use the emulator (auto-resolves via `10.0.2.2`).
+
+**iOS device fails silently.** Re-run `dart run owlscope:setup`,
+delete the app, reinstall. iOS prompts once for local network access —
+allow it.
+
+**Body cap.** HTTP body capture defaults to 16 MiB. Override per call:
+
+```dart
+OwlScope.configure(...)
+  ..use(HttpPlugin(maxBodyBytes: 0)); // 0 = unlimited
+```

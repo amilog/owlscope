@@ -1,21 +1,74 @@
 ---
 title: React Native
-description: Wire OwlScope into a React Native app over USB or LAN.
+description: Wire OwlScope into a React Native app — every device, one setup.
 ---
 
-> Coming in the next release. The skeleton is here, the writing is in flight. <br />
-> If you can't wait, ping us on [Discord](https://discord.gg/owlscope) and we'll
-> pair-debug your stack live.
+Three commands, one line of code. Works in iOS Simulator, iOS device,
+Android emulator and Android device — without per-target configuration.
 
-## Overview
+## Setup
 
-This guide will cover:
+```sh
+npm install owlscope@rn
+npx owlscope setup
+```
 
-- The minimum setup for React Native
-- Common debugging patterns
-- Advanced tips and gotchas
-- Troubleshooting
+```ts title="index.js"
+import { startOwlScope } from 'owlscope/rn';
+if (__DEV__) startOwlScope();
 
-For now, see [Installation](/getting-started/installation/) and
-[Configuration](/getting-started/configuration/) for the basics that apply
-across every platform.
+import { AppRegistry } from 'react-native';
+import App from './App';
+import { name as appName } from './app.json';
+AppRegistry.registerComponent(appName, () => App);
+```
+
+`npx owlscope setup` is idempotent — re-run any time. It:
+
+- patches every `ios/<App>/Info.plist` with `NSLocalNetworkUsageDescription`
+  and `NSAppTransportSecurity → NSAllowsLocalNetworking` (required by
+  iOS 14+ for `ws://` traffic to a real device)
+- runs `adb reverse tcp:9090 tcp:9090` for every connected Android
+  device, so a USB phone can reach the Mac via `localhost`
+
+## Per-target behaviour
+
+| Target               | Host used               | One-time work |
+|----------------------|--------------------------|---------------|
+| iOS Simulator        | `localhost`              | none |
+| iOS Device (LAN)     | Metro bundler IP (auto)  | `npx owlscope setup` |
+| Android Emulator     | `10.0.2.2`               | none |
+| Android Device (USB) | `localhost`              | `npx owlscope setup` (does `adb reverse`) |
+
+## Override the host
+
+Only when `startOwlScope()` picks the wrong one (eg. a real iOS device
+on a different Wi-Fi than the Mac running Metro):
+
+```ts
+startOwlScope({ name: 'my-app', host: '192.168.1.50', port: 9090 });
+```
+
+## What you get
+
+- Every `console.log / info / warn / error / debug`
+- Every `fetch()` and `XMLHttpRequest` (Axios uses XHR — also captured)
+- Uncaught errors via `ErrorUtils.setGlobalHandler` and unhandled
+  promise rejections
+
+Production builds (`NODE_ENV=production`) are no-op'd automatically —
+safe to leave the import in your shipping bundle.
+
+## Troubleshooting
+
+**Client doesn't show up on iOS device.** Run `npx owlscope setup`,
+delete the app, reinstall. iOS prompts once for local network access —
+allow it.
+
+**Client doesn't show up on Android USB device.** Re-run
+`npx owlscope setup` to redo `adb reverse` (it's lost on every reboot
+or USB unplug).
+
+**Conflict with Reactotron.** Both default to port `9090`. Comment out
+the Reactotron import or pass `port: 9091` to both OwlScope and
+desktop.

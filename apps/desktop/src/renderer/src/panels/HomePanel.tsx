@@ -3,15 +3,15 @@ import { useClientsStore } from '@/store/clients';
 import { useEventsStore } from '@/store/events';
 import { useUIStore, type PanelKey } from '@/store/ui';
 
-const QUICK_START = `import 'package:owlscope/auto.dart';
+const QUICK_START_FLUTTER = `import 'package:owlscope/auto.dart';
 
 void main() {
   owlscopeAuto(() => runApp(const MyApp()));
 }`;
 
-const QUICK_START_JS = `import 'owlscope/auto';
-
-// All console.* and fetch/XHR calls now stream to OwlScope.`;
+const QUICK_START_RN = `// index.js — top of the file
+import { startOwlScope } from 'owlscope/rn';
+if (__DEV__) startOwlScope({ name: 'my-app' });`;
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -63,7 +63,7 @@ export function HomePanel() {
           <div>
             <h1 className="text-xl font-semibold text-text-primary">OwlScope</h1>
             <p className="text-xs text-text-muted">
-              Universal debug &amp; monitoring tool — Flutter, JS, more soon.
+              Mobile debug &amp; monitoring tool — Flutter and React Native.
             </p>
           </div>
         </header>
@@ -112,7 +112,7 @@ export function HomePanel() {
             Quick start — Flutter
           </h2>
           <pre className="rounded-lg border border-border-subtle bg-bg-elevated p-4 text-[11px] text-text-primary overflow-auto leading-relaxed">
-{QUICK_START}
+{QUICK_START_FLUTTER}
           </pre>
           <p className="mt-2 text-[11px] text-text-muted">
             Add <code className="font-mono">owlscope</code> to{' '}
@@ -124,11 +124,17 @@ export function HomePanel() {
 
         <section>
           <h2 className="text-[11px] uppercase tracking-wider text-text-muted mb-2">
-            Quick start — JavaScript / React Native
+            Quick start — React Native
           </h2>
           <pre className="rounded-lg border border-border-subtle bg-bg-elevated p-4 text-[11px] text-text-primary overflow-auto leading-relaxed">
-{QUICK_START_JS}
+{QUICK_START_RN}
           </pre>
+          <p className="mt-2 text-[11px] text-text-muted">
+            <code className="font-mono">npm install owlscope@rn</code>. Auto-detects
+            host: <code className="font-mono">localhost</code> on iOS sim,{' '}
+            <code className="font-mono">10.0.2.2</code> on Android emulator,
+            Metro bundler IP on physical devices.
+          </p>
         </section>
 
         <section className="pt-2">

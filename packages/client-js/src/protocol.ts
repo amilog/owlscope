@@ -1,3 +1,8 @@
+// Vendored from protocol.js so the published tarball is self-
+// contained — RN consumers shouldn't need to install a second monorepo
+// package just for type definitions. Keep this in sync with
+// `packages/protocol/src/index.ts`.
+
 export type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
 
 export type EventType =
@@ -21,12 +26,7 @@ export type EventType =
   | 'bloc:transition'
   | 'provider:change';
 
-export type Platform =
-  | 'web'
-  | 'node'
-  | 'react-native'
-  | 'electron'
-  | 'flutter';
+export type Platform = 'web' | 'node' | 'react-native' | 'electron' | 'flutter';
 
 export interface EventMeta {
   stackTrace?: string;

@@ -8,7 +8,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'OwlScope',
-      description: 'Universal debug & monitoring tool for JavaScript and Flutter',
+      description: 'Mobile debug & monitoring tool for React Native and Flutter',
       logo: {
         src: './public/owlscope-logo-animated.svg',
         replacesTitle: false,
@@ -29,32 +29,14 @@ export default defineConfig({
           items: [
             { label: 'Introduction', link: '/getting-started/' },
             { label: 'Installation', link: '/getting-started/installation/' },
-            { label: 'Quick Start', link: '/getting-started/quick-start/' },
-            { label: 'Configuration', link: '/getting-started/configuration/' },
-            { label: 'First Debug Session', link: '/getting-started/first-debug-session/' },
           ],
         },
         {
           label: 'Guides',
           items: [
-            { label: 'React', link: '/guides/react/' },
             { label: 'React Native', link: '/guides/react-native/' },
             { label: 'Flutter', link: '/guides/flutter/' },
-            { label: 'Node.js', link: '/guides/nodejs/' },
-            { label: 'Redux', link: '/guides/redux/' },
-            { label: 'Zustand', link: '/guides/zustand/' },
-            { label: 'Network Debugging', link: '/guides/network-debugging/' },
-            { label: 'Error Tracking', link: '/guides/error-tracking/' },
-            { label: 'Time-Travel Debug', link: '/guides/time-travel/' },
           ],
-        },
-        {
-          label: 'API Reference',
-          autogenerate: { directory: 'api-reference' },
-        },
-        {
-          label: 'Advanced',
-          autogenerate: { directory: 'advanced' },
         },
         {
           label: 'Resources',

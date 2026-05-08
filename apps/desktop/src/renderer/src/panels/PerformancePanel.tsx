@@ -1,146 +1,431 @@
-import { useMemo, useRef, useEffect, useCallback } from 'react';
-import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import { useEventsStore, matchSearch } from '@/store/events';
-import { useUIStore } from '@/store/ui';
-import { InlineDetail } from '@/components/InlineDetail';
-import type { DebugEvent } from '@owlscope/protocol';
+import { useEffect, useMemo, useState } from 'react';
+import { Activity, BarChart3, Cpu, MemoryStick, Thermometer, Battery } from 'lucide-react';
+import {
+  apdexScore,
+  usePerfStore,
+  withinWindow,
+  type FrameSample,
+  type JankEvent,
+} from '@/store/performance';
+import { LineChart } from '@/components/perf/LineChart';
 
-interface PerfPayload {
-  entryType?: string;
-  name?: string;
-  startTime?: number;
-  duration?: number;
-  initiatorType?: string;
-  transferSize?: number;
-  // Flutter style
-  frames?: number;
-  avgBuildMs?: string;
-  avgRasterMs?: string;
-  maxBuildMs?: string;
-  maxRasterMs?: string;
-  slowFrames?: number;
-  windowMs?: number;
+const WINDOWS: { label: string; seconds: number }[] = [
+  { label: '30s', seconds: 30 },
+  { label: '1m', seconds: 60 },
+  { label: '5m', seconds: 300 },
+];
+
+interface KpiCardProps {
+  icon: typeof Activity;
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: 'default' | 'good' | 'warn' | 'bad';
 }
 
-function formatTime(ts: number) {
-  const d = new Date(ts);
-  return d.toTimeString().slice(0, 8) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+function KpiCard({ icon: Icon, label, value, hint, tone = 'default' }: KpiCardProps) {
+  const toneColor = {
+    default: 'text-purple-300',
+    good: 'text-owl-success',
+    warn: 'text-owl-warn',
+    bad: 'text-owl-error',
+  }[tone];
+  return (
+    <div className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2.5">
+      <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-text-muted">
+        <Icon className="w-3 h-3" />
+        {label}
+      </div>
+      <div className={`mt-1 font-mono text-lg font-semibold ${toneColor}`}>{value}</div>
+      {hint && <div className="text-[10px] text-text-muted mt-0.5">{hint}</div>}
+    </div>
+  );
 }
 
-function summary(p: PerfPayload): string {
-  if (p.frames !== undefined) {
-    return `${p.frames} frames · build ${p.avgBuildMs ?? '?'}ms · raster ${p.avgRasterMs ?? '?'}ms${
-      p.slowFrames ? ` · ${p.slowFrames} slow` : ''
-    }`;
-  }
-  return `${p.entryType ?? '?'} · ${p.name ?? ''}`;
+function fpsTone(fps: number): 'good' | 'warn' | 'bad' | 'default' {
+  if (fps >= 55) return 'good';
+  if (fps >= 30) return 'warn';
+  if (fps > 0) return 'bad';
+  return 'default';
 }
 
-function PerfRow({
-  event,
-  selected,
-  onSelect,
-}: {
-  event: DebugEvent;
-  selected: boolean;
-  onSelect: (id: string) => void;
-}) {
-  const p = event.payload as PerfPayload;
-  const isSlow =
-    (p.duration ?? 0) > 100 ||
-    (typeof p.maxBuildMs === 'string' && parseFloat(p.maxBuildMs) > 16) ||
-    (typeof p.maxRasterMs === 'string' && parseFloat(p.maxRasterMs) > 16) ||
-    (p.slowFrames ?? 0) > 0;
+function apdexTone(score: number): 'good' | 'warn' | 'bad' {
+  if (score >= 85) return 'good';
+  if (score >= 70) return 'warn';
+  return 'bad';
+}
 
-  const rowClass = [
-    'flex items-center gap-2 h-8 px-3 text-[11px] cursor-pointer border-b border-border-subtle/40',
-    selected ? 'row-selected' : 'row-hover',
-    isSlow ? 'row-warn' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+function FrameBudgetHistogram({ samples }: { samples: FrameSample[] }) {
+  // Bucket avg-build-ms across all sampled windows.
+  const buckets = useMemo(() => {
+    const out = [
+      { label: '0–4ms', count: 0, color: '#4ade80' },
+      { label: '4–8ms', count: 0, color: '#a78bfa' },
+      { label: '8–16ms', count: 0, color: '#fbbf24' },
+      { label: '16–32ms', count: 0, color: '#fb923c' },
+      { label: '>32ms', count: 0, color: '#f87171' },
+    ];
+    for (const s of samples) {
+      const v = Math.max(s.avgBuildMs, s.avgRasterMs);
+      if (v < 4) out[0].count++;
+      else if (v < 8) out[1].count++;
+      else if (v < 16) out[2].count++;
+      else if (v < 32) out[3].count++;
+      else out[4].count++;
+    }
+    return out;
+  }, [samples]);
+
+  const max = Math.max(1, ...buckets.map((b) => b.count));
 
   return (
-    <div className={rowClass} onClick={() => onSelect(event.id)}>
-      <span className="w-[92px] shrink-0 text-text-muted tabular-nums">
-        {formatTime(event.timestamp)}
-      </span>
-      <span className="w-24 shrink-0 text-owl-info">
-        {p.entryType ?? (p.frames !== undefined ? 'frame' : '?')}
-      </span>
-      <span className="flex-1 truncate text-text-primary">{summary(p)}</span>
-      {p.duration !== undefined && (
-        <span className="w-16 shrink-0 text-right text-text-muted tabular-nums">
-          {Math.round(p.duration)}ms
-        </span>
-      )}
+    <div className="rounded-md border border-border-subtle bg-bg-elevated p-3">
+      <div className="text-[10px] uppercase tracking-wider text-text-muted mb-3">
+        Frame budget distribution
+      </div>
+      <div className="space-y-1.5">
+        {buckets.map((b) => (
+          <div key={b.label} className="flex items-center gap-2">
+            <div className="w-14 text-[10px] font-mono text-text-muted">{b.label}</div>
+            <div className="flex-1 h-3 bg-bg-primary rounded-sm overflow-hidden">
+              <div
+                className="h-full rounded-sm"
+                style={{ width: `${(b.count / max) * 100}%`, background: b.color, opacity: 0.85 }}
+              />
+            </div>
+            <div className="w-10 text-right text-[10px] font-mono text-text-secondary">
+              {b.count}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TopRebuilders() {
+  const rebuilds = usePerfStore((s) => s.rebuilds);
+  const aggregated = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of rebuilds) {
+      for (const w of r.topWidgets) {
+        map.set(w.name, (map.get(w.name) ?? 0) + w.count);
+      }
+    }
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [rebuilds]);
+
+  const total = aggregated.reduce((acc, w) => acc + w.count, 0);
+  const max = Math.max(1, ...aggregated.map((w) => w.count));
+
+  return (
+    <div className="rounded-md border border-border-subtle bg-bg-elevated p-3">
+      <div className="flex items-baseline justify-between mb-3">
+        <div className="text-[10px] uppercase tracking-wider text-text-muted">
+          Top rebuilders
+        </div>
+        <div className="text-[10px] text-text-muted">
+          {total > 0 ? `${total.toLocaleString()} total` : 'no data yet'}
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        {aggregated.length === 0 ? (
+          <div className="text-[11px] text-text-muted py-4 text-center">
+            Nothing tracked yet — rebuild stats only flow in debug builds.
+          </div>
+        ) : (
+          aggregated.map((w) => (
+            <div key={w.name} className="flex items-center gap-2">
+              <div className="flex-1 min-w-0 text-[11px] truncate text-text-primary font-mono">
+                {w.name}
+              </div>
+              <div className="w-32 h-3 bg-bg-primary rounded-sm overflow-hidden">
+                <div
+                  className="h-full bg-purple-500/70 rounded-sm"
+                  style={{ width: `${(w.count / max) * 100}%` }}
+                />
+              </div>
+              <div className="w-12 text-right text-[10px] font-mono text-text-secondary">
+                {w.count.toLocaleString()}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
 
 export function PerformancePanel() {
-  const events = useEventsStore((s) => s.events);
-  const filters = useEventsStore((s) => s.filters);
-  const expanded = useEventsStore((s) => s.expandedEventIds);
-  const toggleExpand = useEventsStore((s) => s.toggleExpand);
-  const order = useUIStore((s) => s.order);
-  const isPaused = useEventsStore((s) => s.isPaused);
+  const frame = usePerfStore((s) => s.frame);
+  const memory = usePerfStore((s) => s.memory);
+  const janks = usePerfStore((s) => s.janks);
+  const thermal = usePerfStore((s) => s.thermal);
+  const ewmaFps = usePerfStore((s) => s.ewmaFps);
 
-  const sorted = useMemo(() => {
-    const out = events.filter((e) => e.type === 'performance' && matchSearch(e, filters));
-    return order === 'newest-top' ? out.reverse() : out;
-  }, [events, filters, order]);
-
-  const ref = useRef<VirtuosoHandle | null>(null);
-  const lastLenRef = useRef(0);
+  const [windowSec, setWindowSec] = useState(60);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (isPaused) {
-      lastLenRef.current = sorted.length;
-      return;
-    }
-    if (sorted.length > lastLenRef.current && order === 'newest-top') {
-      ref.current?.scrollToIndex({ index: 0, behavior: 'auto' });
-    }
-    lastLenRef.current = sorted.length;
-  }, [sorted.length, order, isPaused]);
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
-  const toggleSelect = useCallback(
-    (id: string) => toggleExpand(id),
-    [toggleExpand],
+  const fSlice = useMemo(() => withinWindow(frame, windowSec, now), [frame, windowSec, now]);
+  const mSlice = useMemo(() => withinWindow(memory, windowSec, now), [memory, windowSec, now]);
+  const jSlice = useMemo(() => withinWindow(janks, windowSec, now), [janks, windowSec, now]);
+
+  const apdex = useMemo(() => apdexScore(fSlice), [fSlice]);
+  const latestMem = mSlice.length > 0 ? mSlice[mSlice.length - 1] : null;
+  const peakMem = useMemo(
+    () => (mSlice.length > 0 ? Math.max(...mSlice.map((s) => s.rssMb)) : 0),
+    [mSlice],
+  );
+  const totalJanks = jSlice.length;
+  const frozen = jSlice.filter((j) => j.frozen).length;
+
+  const fpsSeries = useMemo(
+    () => fSlice.map((s) => ({ t: s.t, v: s.fps })),
+    [fSlice],
+  );
+  const buildSeries = useMemo(
+    () => fSlice.map((s) => ({ t: s.t, v: s.avgBuildMs })),
+    [fSlice],
+  );
+  const rasterSeries = useMemo(
+    () => fSlice.map((s) => ({ t: s.t, v: s.avgRasterMs })),
+    [fSlice],
+  );
+  const memorySeries = useMemo(
+    () => mSlice.map((s) => ({ t: s.t, v: s.rssMb })),
+    [mSlice],
   );
 
-  if (sorted.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-text-muted text-xs">
-        No performance entries captured yet.
-      </div>
-    );
-  }
+  const jankMarkers = useMemo(
+    () =>
+      jSlice.map((j) => ({
+        t: j.t,
+        color: j.frozen ? '#dc2626' : '#f87171',
+        title: `${j.frozen ? 'frozen' : 'jank'} · build ${j.buildMs.toFixed(1)}ms · raster ${j.rasterMs.toFixed(1)}ms`,
+      })),
+    [jSlice],
+  );
+
+  const empty = frame.length === 0 && memory.length === 0;
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col">
-      <div className="h-8 shrink-0 flex items-center gap-2 px-3 text-[10px] uppercase tracking-wider text-text-muted border-b border-border-subtle bg-bg-surface">
-        <span className="w-[92px] shrink-0">Time</span>
-        <span className="w-24 shrink-0">Type</span>
-        <span className="flex-1">Detail</span>
-        <span className="w-16 shrink-0 text-right">Duration</span>
+    <div className="flex-1 min-h-0 overflow-auto bg-bg-primary">
+      <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-border-subtle bg-bg-surface sticky top-0 z-10">
+        <div>
+          <div className="text-xs text-text-secondary font-medium">Performance</div>
+          <div className="text-[10px] text-text-muted mt-0.5">
+            {empty
+              ? 'Waiting for frame & memory samples from the SDK…'
+              : `${fSlice.length} frame samples · ${jSlice.length} janks · last ${windowSec}s`}
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          {WINDOWS.map((w) => (
+            <button
+              key={w.label}
+              onClick={() => setWindowSec(w.seconds)}
+              className={`text-[11px] px-2 py-1 rounded border transition-colors ${
+                windowSec === w.seconds
+                  ? 'border-purple-500/40 bg-purple-500/10 text-purple-300'
+                  : 'border-border-subtle bg-bg-elevated text-text-muted hover:text-text-primary'
+              }`}
+            >
+              {w.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="flex-1 min-h-0">
-        <Virtuoso
-          ref={ref}
-          style={{ height: '100%' }}
-          data={sorted}
-          computeItemKey={(_index, ev) => ev.id}
-          followOutput={order === 'newest-bottom' && !isPaused ? 'auto' : false}
-          itemContent={(_index, ev) => (
-            <div>
-              <PerfRow event={ev} selected={expanded.has(ev.id)} onSelect={toggleSelect} />
-              {expanded.has(ev.id) && <InlineDetail event={ev} />}
+
+      {empty ? (
+        <div className="flex-1 flex items-center justify-center text-text-muted text-xs py-24">
+          <div className="text-center max-w-md">
+            <Activity className="w-8 h-8 mx-auto text-text-muted/40 mb-3" />
+            <p className="mb-2">No performance samples yet.</p>
+            <p className="text-[11px] leading-relaxed">
+              Make sure your Flutter app uses{' '}
+              <code className="font-mono text-purple-300">PerformancePlugin()</code> and is
+              running in <code className="font-mono">kDebugMode</code> or{' '}
+              <code className="font-mono">profile</code> mode.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 space-y-4">
+          {/* KPI row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <KpiCard
+              icon={Activity}
+              label="FPS (smoothed)"
+              value={ewmaFps > 0 ? ewmaFps.toFixed(1) : '–'}
+              hint={
+                fSlice.length > 0
+                  ? `min ${Math.min(...fSlice.map((s) => s.fps)).toFixed(0)} · max ${Math.max(...fSlice.map((s) => s.fps)).toFixed(0)}`
+                  : undefined
+              }
+              tone={fpsTone(ewmaFps)}
+            />
+            <KpiCard
+              icon={MemoryStick}
+              label="Memory"
+              value={latestMem ? `${latestMem.rssMb.toFixed(0)} MB` : '–'}
+              hint={peakMem > 0 ? `peak ${peakMem.toFixed(0)} MB` : undefined}
+            />
+            <KpiCard
+              icon={BarChart3}
+              label="Apdex score"
+              value={`${apdex}/100`}
+              hint={
+                totalJanks > 0
+                  ? `${totalJanks} jank${totalJanks === 1 ? '' : 's'}${frozen ? ` · ${frozen} frozen` : ''}`
+                  : 'no janks'
+              }
+              tone={apdexTone(apdex)}
+            />
+            <KpiCard
+              icon={thermal && thermal.state !== 'unknown' ? Thermometer : Battery}
+              label="Thermal"
+              value={
+                thermal?.state && thermal.state !== 'unknown'
+                  ? thermal.state
+                  : thermal?.batteryLevel !== undefined
+                    ? `${thermal.batteryLevel}%`
+                    : 'unknown'
+              }
+              hint={
+                thermal?.cpuTempC !== undefined
+                  ? `${thermal.cpuTempC.toFixed(1)} °C`
+                  : thermal?.batteryTempC !== undefined
+                    ? `${thermal.batteryTempC.toFixed(1)} °C battery`
+                    : 'no native sensor yet'
+              }
+              tone={
+                thermal?.state === 'critical'
+                  ? 'bad'
+                  : thermal?.state === 'serious'
+                    ? 'warn'
+                    : 'default'
+              }
+            />
+          </div>
+
+          {/* FPS chart with jank markers */}
+          <div className="rounded-md border border-border-subtle bg-bg-elevated p-3">
+            <LineChart
+              title="FPS"
+              unit="fps"
+              data={fpsSeries}
+              windowMs={windowSec * 1000}
+              now={now}
+              yMin={0}
+              yMax={70}
+              thresholds={[
+                { y: 60, color: '#4ade80', label: '60' },
+                { y: 30, color: '#fbbf24', label: '30' },
+              ]}
+              markers={jankMarkers}
+              color="#a78bfa"
+              formatY={(v) => v.toFixed(0)}
+              height={140}
+            />
+          </div>
+
+          {/* Build/Raster + Memory side-by-side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="rounded-md border border-border-subtle bg-bg-elevated p-3">
+              <LineChart
+                title="Build / Raster (avg ms)"
+                unit="ms"
+                data={buildSeries}
+                windowMs={windowSec * 1000}
+                now={now}
+                yMin={0}
+                thresholds={[{ y: 16, color: '#fbbf24', label: '16ms budget' }]}
+                color="#a78bfa"
+                formatY={(v) => v.toFixed(1)}
+                height={140}
+              />
+              <div className="-mt-1">
+                <LineChart
+                  data={rasterSeries}
+                  windowMs={windowSec * 1000}
+                  now={now}
+                  yMin={0}
+                  color="#2dd4bf"
+                  formatY={(v) => v.toFixed(1)}
+                  unit="ms raster"
+                  height={86}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-md border border-border-subtle bg-bg-elevated p-3">
+              <LineChart
+                title="Memory (RSS)"
+                unit="MB"
+                data={memorySeries}
+                windowMs={windowSec * 1000}
+                now={now}
+                color="#60a5fa"
+                formatY={(v) => v.toFixed(0)}
+                height={236}
+              />
+            </div>
+          </div>
+
+          {/* Histogram + rebuilders */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <FrameBudgetHistogram samples={fSlice} />
+            <TopRebuilders />
+          </div>
+
+          {/* Jank list */}
+          {jSlice.length > 0 && (
+            <div className="rounded-md border border-border-subtle bg-bg-elevated p-3">
+              <div className="text-[10px] uppercase tracking-wider text-text-muted mb-2 flex items-center gap-1.5">
+                <Cpu className="w-3 h-3" />
+                Recent janks
+              </div>
+              <JankList items={jSlice.slice(-12).reverse()} />
             </div>
           )}
-        />
-      </div>
+        </div>
+      )}
     </div>
   );
 }
+
+function JankList({ items }: { items: JankEvent[] }) {
+  return (
+    <div className="space-y-1">
+      {items.map((j, i) => (
+        <div
+          key={`${j.t}-${i}`}
+          className={`flex items-center gap-3 px-2 py-1 rounded text-[11px] font-mono ${
+            j.frozen ? 'bg-owl-error/10 text-owl-error' : 'bg-owl-warn/10 text-owl-warn'
+          }`}
+        >
+          <span className="w-20 tabular-nums text-text-muted">
+            {new Date(j.t).toTimeString().slice(0, 8)}
+          </span>
+          <span className="w-16 uppercase text-[10px] tracking-wider">
+            {j.frozen ? 'frozen' : 'jank'}
+          </span>
+          <span className="flex-1">
+            build <span className="font-semibold">{j.buildMs.toFixed(1)}ms</span>
+            <span className="text-text-muted mx-2">·</span>
+            raster <span className="font-semibold">{j.rasterMs.toFixed(1)}ms</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+

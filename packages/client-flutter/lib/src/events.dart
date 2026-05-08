@@ -8,6 +8,11 @@ class EventTypes {
   static const error = 'error';
   static const custom = 'custom';
   static const performance = 'performance';
+  static const performanceFrame = 'performance:frame';
+  static const performanceMemory = 'performance:memory';
+  static const performanceJank = 'performance:jank';
+  static const performanceRebuilds = 'performance:rebuilds';
+  static const performanceThermal = 'performance:thermal';
   static const storage = 'storage';
   static const widgetRebuild = 'widget:rebuild';
   static const navigationPush = 'navigation:push';

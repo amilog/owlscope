@@ -1,125 +1,103 @@
 ---
 title: Installation
-description: Install the SDK and the desktop app in under a minute.
+description: Two installs, one setup command per platform, then one line of code.
 sidebar:
   order: 1
 ---
 
-import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 OwlScope has two pieces:
 
-1. **The SDK** — a tiny library that runs inside your app
-2. **The desktop app** — a UI that displays everything the SDK captures
+1. **The desktop app** — receives events, draws charts
+2. **The SDK** — runs in your mobile app and streams events
 
-Install both, connect them, and you're debugging.
+Install both, run one setup command, write one line.
 
-## Prerequisites
+## 1. Desktop app
 
-- **JavaScript / TypeScript:** Node.js 18 or newer
-- **Flutter:** Dart SDK 3.0 or newer
-- **Desktop app:** macOS 10.15+, Windows 10+, or Linux with glibc 2.28+
+Download the latest build from the
+[releases page](https://github.com/amilog/owlscope/releases), or build
+from source:
 
-## Step 1 — Install the SDK
-
-<Tabs syncKey="js-pkg">
-  <TabItem label="npm">
-    ```bash
-    npm install -D owlscope
-    ```
-  </TabItem>
-  <TabItem label="pnpm">
-    ```bash
-    pnpm add -D owlscope
-    ```
-  </TabItem>
-  <TabItem label="yarn">
-    ```bash
-    yarn add -D owlscope
-    ```
-  </TabItem>
-  <TabItem label="bun">
-    ```bash
-    bun add -d owlscope
-    ```
-  </TabItem>
-</Tabs>
-
-For Flutter, add to your `pubspec.yaml`:
-
-```yaml
-dev_dependencies:
-  owlscope: ^0.1.0
+```sh
+git clone https://github.com/amilog/owlscope
+cd owlscope
+npm install
+npm run dev
 ```
 
-Then run `flutter pub get`.
+The desktop binds a WebSocket server on `0.0.0.0:9090`. Allow incoming
+connections if macOS prompts.
 
-## Step 2 — Download the desktop app
+## 2. SDK
 
-<a href="/download" class="action primary" style="display: inline-flex; align-items: center; gap: 8px;">
-  Download for your OS →
-</a>
-
-The download page auto-detects your platform.
-
-:::note[First-time install on macOS?]
-Since OwlScope is open source, we don't pay Apple's $99/yr fee, so macOS will
-warn you on first launch. Right-click → Open → Open in the dialog. After that
-you'll never see it again. [Full guide →](/download)
-:::
-
-## Step 3 — Wire them up
-
-Add a single import to your app's entry point:
-
-<Tabs syncKey="framework">
-  <TabItem label="React">
-    ```ts title="src/main.tsx"
-    import 'owlscope/auto';
-
-    import { createRoot } from 'react-dom/client';
-    import App from './App';
-
-    createRoot(document.getElementById('root')!).render(<App />);
-    ```
-  </TabItem>
+<Tabs syncKey="platform">
   <TabItem label="React Native">
-    ```ts title="index.js"
-    import 'owlscope/auto';
+    ```sh
+    npm install owlscope@rn
+    npx owlscope setup
+    ```
+
+    ```ts title="index.js — top of file"
+    import { startOwlScope } from 'owlscope/rn';
+    if (__DEV__) startOwlScope();
 
     import { AppRegistry } from 'react-native';
     import App from './App';
-
-    AppRegistry.registerComponent('main', () => App);
+    import { name as appName } from './app.json';
+    AppRegistry.registerComponent(appName, () => App);
     ```
+
+    `npx owlscope setup` patches your `ios/<App>/Info.plist` for iOS 14+
+    local-network permissions and runs `adb reverse` for connected
+    Android devices. Idempotent — re-run any time.
   </TabItem>
   <TabItem label="Flutter">
+    ```yaml title="pubspec.yaml"
+    dependencies:
+      owlscope: ^0.1.3
+    ```
+
+    ```sh
+    flutter pub get
+    dart run owlscope:setup
+    ```
+
     ```dart title="lib/main.dart"
     import 'package:owlscope/auto.dart';
     import 'package:flutter/material.dart';
 
-    void main() {
-      owlscopeAuto(() => runApp(const MyApp()));
-    }
+    void main() => owlscopeAuto(() => runApp(const MyApp()));
     ```
-  </TabItem>
-  <TabItem label="Node.js">
-    ```ts title="server.ts"
-    import 'owlscope/auto';
 
-    import express from 'express';
-    const app = express();
-    app.listen(3000);
+    For physical Android via USB:
+
+    ```sh
+    dart run owlscope:reverse
     ```
   </TabItem>
 </Tabs>
 
-Open the desktop app, run your project — events stream in.
+## 3. Run
 
-## Done!
+```sh
+# Terminal 1
+npm run dev   # at the OwlScope repo root
 
-That's the whole install. Next up:
+# Terminal 2
+npm run ios    # or run-android, or flutter run, or yarn ios…
+```
 
-- [Quick Start](/getting-started/quick-start/) — hello world in 3 minutes
-- [Configuration](/getting-started/configuration/) — when you outgrow defaults
-- [Framework guides](/guides/react/) — react, flutter, redux, etc.
+Your app appears in the desktop sidebar within a couple of seconds.
+Click around, send a request, watch logs and network traffic stream in.
+
+## What works on which target
+
+| Target               | iOS Simulator | iOS Device | Android Emulator | Android Device (USB) |
+|----------------------|---------------|------------|------------------|----------------------|
+| React Native         | ✅            | ✅         | ✅               | ✅                   |
+| Flutter              | ✅            | ✅         | ✅               | ✅                   |
+
+For per-platform deep dives, see [React Native](/guides/react-native/)
+and [Flutter](/guides/flutter/) guides.

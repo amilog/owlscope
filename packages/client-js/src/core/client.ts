@@ -1,4 +1,4 @@
-import type { DebugEvent, EventType, LogLevel, Platform } from '@owlscope/protocol';
+import type { DebugEvent, EventType, LogLevel, Platform } from '../protocol.js';
 import { Transport } from './transport.js';
 import { uuidv4 } from './uuid.js';
 import { safeClone } from './serializer.js';

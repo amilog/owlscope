@@ -5,35 +5,49 @@ description: Frequent questions about OwlScope.
 
 ## Is OwlScope free?
 
-Yes. MIT licensed. Source on [GitHub](https://github.com/YOUR_USERNAME/owlscope).
+Yes. MIT licensed. Source on [GitHub](https://github.com/amilog/owlscope).
 
 ## Does my data leave my machine?
 
-No. The desktop app runs a WebSocket server on `localhost`. Your SDK connects
-to it directly. Nothing is uploaded anywhere.
+No. The desktop app runs a WebSocket server on `localhost`. Your SDK
+connects to it directly. Nothing is uploaded anywhere.
 
 ## Does it work in production?
 
-The SDK is **no-op in production builds** (`NODE_ENV=production` for JS,
-`kReleaseMode` for Flutter). Even if shipped, it does nothing.
+The SDK is **no-op in production builds** (`NODE_ENV=production` for
+React Native, `kReleaseMode` for Flutter). Even if shipped, it does
+nothing.
+
+## Does it work on iOS device / Android device?
+
+Yes — that's why both SDKs ship a `setup` command:
+
+- **React Native**: `npx owlscope setup` patches `Info.plist` and runs
+  `adb reverse` for connected devices.
+- **Flutter**: `dart run owlscope:setup` patches native configs;
+  `dart run owlscope:reverse` handles Android USB.
+
+After the one-time setup, all four targets (sim/device, both platforms)
+work without further tweaking.
 
 ## How is this different from Reactotron?
 
-OwlScope is a spiritual successor — same idea, modern stack, multi-platform
-SDK, and active development. Reactotron focuses on React Native; OwlScope
-covers JS, RN, Flutter, and Node.js out of the box.
+OwlScope is a spiritual successor — same idea, modern stack, with first-
+class Flutter support. The desktop UI is virtualised and handles 50k
+events at 60 fps; the protocol is documented; you can write your own
+client.
 
-## How does the desktop app connect to my phone?
+## My port 9090 is taken (Reactotron, etc.).
 
-For Android over USB: run `dart run owlscope:reverse` once after plugging in
-the device. For iOS / LAN: use your Mac's LAN IP as the `host`.
+Pass `port: 9091` to both `startOwlScope()` / `owlscopeAuto()` and
+launch the desktop with the same port. Or stop the conflicting service.
 
 ## Can I write my own UI?
 
-Yes. The wire protocol is documented in [`@owlscope/protocol`](https://github.com/YOUR_USERNAME/owlscope/tree/main/packages/protocol).
+Yes. The wire protocol is documented in
+[`@owlscope/protocol`](https://github.com/amilog/owlscope/tree/main/packages/protocol).
 The desktop app is just one consumer.
 
 ## Where do I report bugs?
 
-[GitHub Issues](https://github.com/YOUR_USERNAME/owlscope/issues) or
-[Discord](https://discord.gg/owlscope).
+[GitHub Issues](https://github.com/amilog/owlscope/issues).

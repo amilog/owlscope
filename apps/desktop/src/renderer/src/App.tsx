@@ -13,6 +13,7 @@ import { TimelinePanel } from '@/panels/TimelinePanel';
 import { useEventsStore } from '@/store/events';
 import { useClientsStore } from '@/store/clients';
 import { useUIStore } from '@/store/ui';
+import { usePerfStore } from '@/store/performance';
 import type { IncomingPayload } from '@/types/global';
 
 export default function App() {
@@ -37,10 +38,16 @@ export default function App() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.owlscope) return;
+    const ingestPerf = usePerfStore.getState().ingest;
+    const isPerf = (t: string) => t === 'performance' || t.startsWith('performance:');
     const off = window.owlscope.onIncoming((p: IncomingPayload) => {
-      if (p.kind === 'event') addEvent(p.event);
-      else if (p.kind === 'events') addEvents(p.events);
-      else if (p.kind === 'client:connected') addClient(p.client);
+      if (p.kind === 'event') {
+        addEvent(p.event);
+        if (isPerf(p.event.type)) ingestPerf(p.event);
+      } else if (p.kind === 'events') {
+        addEvents(p.events);
+        for (const ev of p.events) if (isPerf(ev.type)) ingestPerf(ev);
+      } else if (p.kind === 'client:connected') addClient(p.client);
       else if (p.kind === 'client:disconnected') removeClient(p.clientId);
       else if (p.kind === 'server:status') setServerStatus(p.running, p.address);
     });

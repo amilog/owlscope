@@ -3,8 +3,6 @@ import { ConsolePlugin } from './plugins/console.js';
 import { NetworkFetchPlugin } from './plugins/network-fetch.js';
 import { NetworkXhrPlugin } from './plugins/network-xhr.js';
 import { ErrorsPlugin } from './plugins/errors.js';
-import { PerformancePlugin } from './plugins/performance.js';
-import { StoragePlugin } from './plugins/storage.js';
 import type { ClientOptions } from './types.js';
 
 export { OwlScopeClient } from './core/client.js';
@@ -12,8 +10,6 @@ export { ConsolePlugin } from './plugins/console.js';
 export { NetworkFetchPlugin } from './plugins/network-fetch.js';
 export { NetworkXhrPlugin } from './plugins/network-xhr.js';
 export { ErrorsPlugin } from './plugins/errors.js';
-export { PerformancePlugin } from './plugins/performance.js';
-export { StoragePlugin } from './plugins/storage.js';
 export { Transport } from './core/transport.js';
 export { safeClone, safeStringify } from './core/serializer.js';
 export { redact, DEFAULT_REDACT_KEYS } from './core/redact.js';
@@ -52,24 +48,35 @@ export function getClient(): OwlScopeClient | null {
 
 export function installDefaultPlugins(client: OwlScopeClient, opts: ClientOptions = {}) {
   const cfg = opts.plugins ?? {};
+  const g = globalThis as unknown as {
+    fetch?: typeof fetch;
+    XMLHttpRequest?: unknown;
+    ErrorUtils?: unknown;
+    process?: { on?: (...a: unknown[]) => void };
+  };
+
   if (cfg.console !== false) {
     client.use(new ConsolePlugin());
   }
+
   if (cfg.network !== false) {
-    if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    if (typeof g.fetch === 'function') {
       client.use(new NetworkFetchPlugin());
     }
-    if (typeof XMLHttpRequest !== 'undefined') {
+    if (typeof g.XMLHttpRequest !== 'undefined') {
       client.use(new NetworkXhrPlugin());
     }
   }
-  if (cfg.errors !== false && typeof window !== 'undefined') {
-    client.use(new ErrorsPlugin());
-  }
-  if (cfg.performance !== false && typeof PerformanceObserver !== 'undefined') {
-    client.use(new PerformancePlugin());
-  }
-  if (cfg.storage !== false && typeof window !== 'undefined') {
-    client.use(new StoragePlugin());
+
+  // ErrorsPlugin self-detects React Native (`ErrorUtils.setGlobalHandler`),
+  // browser (`window.onerror`), or Node. Install whenever one is reachable.
+  if (cfg.errors !== false) {
+    const hasBrowser =
+      typeof window !== 'undefined' && typeof window.addEventListener === 'function';
+    const hasRn = typeof g.ErrorUtils === 'object' && g.ErrorUtils !== null;
+    const hasNode = typeof g.process?.on === 'function';
+    if (hasBrowser || hasRn || hasNode) {
+      client.use(new ErrorsPlugin());
+    }
   }
 }

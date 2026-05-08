@@ -117,11 +117,14 @@ export class NetworkFetchPlugin implements OwlScopePlugin {
   }
 
   install(client: OwlScopeClientApi): void {
-    if (typeof window === 'undefined' || typeof window.fetch !== 'function') return;
-    const original = window.fetch.bind(window);
+    // `globalThis.fetch` works in browser, Node 18+, React Native (Hermes
+    // and JSC), Electron, and Web Workers — anywhere fetch is available.
+    const g = globalThis as unknown as { fetch?: typeof fetch };
+    if (typeof g.fetch !== 'function') return;
+    const original = g.fetch.bind(globalThis);
     this.original = original;
 
-    window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    g.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const url = resolveUrl(input);
       const method = resolveMethod(input, init);
 
@@ -204,8 +207,8 @@ export class NetworkFetchPlugin implements OwlScopePlugin {
   }
 
   uninstall(): void {
-    if (this.original && typeof window !== 'undefined') {
-      window.fetch = this.original;
+    if (this.original) {
+      (globalThis as unknown as { fetch?: typeof fetch }).fetch = this.original;
     }
     this.original = null;
   }
