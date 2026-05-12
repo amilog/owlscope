@@ -48,7 +48,16 @@ export default function App() {
         addEvents(p.events);
         for (const ev of p.events) if (isPerf(ev.type)) ingestPerf(ev);
       } else if (p.kind === 'client:connected') addClient(p.client);
-      else if (p.kind === 'client:disconnected') removeClient(p.clientId);
+      else if (p.kind === 'client:disconnected') {
+        removeClient(p.clientId);
+        // If the user had this client pinned via the sidebar (or accidentally),
+        // the filter would silently swallow every event from the *next*
+        // device — clientId of a reconnected app is fresh. Reset.
+        const currentFilter = useEventsStore.getState().filters.clientId;
+        if (currentFilter === p.clientId) {
+          useEventsStore.getState().setClientFilter(null);
+        }
+      }
       else if (p.kind === 'server:status') setServerStatus(p.running, p.address);
     });
 

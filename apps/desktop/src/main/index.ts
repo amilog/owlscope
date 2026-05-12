@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { OwlScopeServer, type IncomingEvent } from './server.js';
+import { startAdbReverseWatcher, type AdbReverseWatcher } from './adb-reverse.js';
 import { DEFAULT_PORT } from '@owlscope/protocol';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -9,6 +10,7 @@ const __dirnameLocal = dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 const wsServer = new OwlScopeServer(DEFAULT_PORT);
+let adbWatcher: AdbReverseWatcher | null = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -52,6 +54,10 @@ function forwardToRenderer(e: IncomingEvent) {
 app.whenReady().then(() => {
   wsServer.start();
   wsServer.onEvent(forwardToRenderer);
+  // USB Android phones reach the desktop via `localhost:<port>` only when
+  // `adb reverse` is active. Run a tiny watcher so the developer never has
+  // to think about this — no-op if adb isn't installed.
+  adbWatcher = startAdbReverseWatcher(DEFAULT_PORT);
 
   ipcMain.handle('owlscope:get-clients', () => wsServer.getConnectedClients());
   ipcMain.handle('owlscope:get-server-status', () => wsServer.getStatus());
@@ -75,6 +81,8 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   wsServer.stop();
+  adbWatcher?.stop();
+  adbWatcher = null;
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -82,4 +90,6 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   wsServer.stop();
+  adbWatcher?.stop();
+  adbWatcher = null;
 });

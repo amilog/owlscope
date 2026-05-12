@@ -1,9 +1,8 @@
 {
   "name": "owlscope",
-  "version": "0.2.3",
-  "description": "OwlScope React Native client SDK — universal debug & monitoring tool for mobile developers.",
+  "version": "0.3.5",
+  "description": "OwlScope React Native client SDK — universal debug & monitoring tool for mobile developers, with native FPS / memory / thermal / battery metrics.",
   "license": "MIT",
-  "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -31,6 +30,10 @@
     "dist",
     "src",
     "bin",
+    "ios",
+    "android",
+    "owlscope.podspec",
+    "react-native.config.js",
     "README.md"
   ],
   "scripts": {

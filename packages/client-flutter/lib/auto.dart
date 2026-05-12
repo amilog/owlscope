@@ -20,9 +20,18 @@ void owlscopeAuto(
   // for unlimited — useful when debugging huge JSON payloads, but a runaway
   // download will buffer entirely in memory.
   int httpMaxBodyBytes = defaultMaxBodyBytes,
+  // Set to `true` when profiling release builds — `flutter run --release`
+  // strips assertions and enables AOT, which is the only way to see real
+  // production performance numbers. Off by default so a shipped app
+  // doesn't try to open a debug socket on user devices.
+  //
+  // Android: also run `dart run owlscope:setup` once — it installs a
+  // Network Security Config that allows cleartext only to `localhost`
+  // and the emulator IPs, leaving the rest of the app HTTPS-only.
+  bool enableInRelease = false,
 }) {
   OwlScopeRunner.guard(() {
-    if (kReleaseMode) {
+    if (kReleaseMode && !enableInRelease) {
       // No-op in release: just run the body without any instrumentation.
       body();
       return;

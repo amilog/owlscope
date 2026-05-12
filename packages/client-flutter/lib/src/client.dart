@@ -1,6 +1,8 @@
 import 'dart:io' show Platform;
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'events.dart';
 import 'plugin.dart';
 import 'redact.dart';
@@ -42,6 +44,25 @@ String _detectPlatform() {
   return 'flutter';
 }
 
+/// Auto-detect the host OS. Sent in the handshake so the desktop sidebar
+/// can distinguish the same app running on multiple devices (iOS sim +
+/// Android emulator both showing as `elan_az` is ambiguous; with this
+/// they appear as `elan_az · iOS` and `elan_az · Android`).
+String? _detectFramework() {
+  if (kIsWeb) return 'Web';
+  try {
+    if (Platform.isIOS) return 'iOS';
+    if (Platform.isAndroid) return 'Android';
+    if (Platform.isMacOS) return 'macOS';
+    if (Platform.isWindows) return 'Windows';
+    if (Platform.isLinux) return 'Linux';
+    if (Platform.isFuchsia) return 'Fuchsia';
+  } catch (_) {
+    // dart:io unavailable on web
+  }
+  return null;
+}
+
 class OwlScope {
   static OwlScope? _instance;
 
@@ -72,7 +93,7 @@ class OwlScope {
     final inst = OwlScope._(
       name: name,
       version: version,
-      framework: framework,
+      framework: framework ?? _detectFramework(),
       enabled: enabled,
       redactKeys: redactKeys,
       transport: Transport(

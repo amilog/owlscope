@@ -1,5 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
-import { configure } from './index.js';
+import { configure, getClient } from './index.js';
+import { PerformancePlugin } from './plugins/performance.js';
 
 export interface StartOptions {
   /** Display name for the desktop sidebar. Defaults to `'rn-app'`. */
@@ -88,6 +89,30 @@ export function startOwlScope(opts: StartOptions = {}): void {
       errors: true,
     },
   });
+
+  // The performance plugin is RN-specific (depends on the OwlScopePerf
+  // native module), so it lives outside the cross-platform default set.
+  // No-ops gracefully when the native module isn't linked yet (eg. user
+  // hasn't run `pod install` after upgrading).
+  const client = getClient();
+  if (client) {
+    client.use(new PerformancePlugin());
+    const linked = !!(NativeModules as { OwlScopePerf?: unknown }).OwlScopePerf;
+    // Always emit status — surfacing the diagnostic in OwlScope's own Logs
+    // panel rather than the dev terminal makes it impossible to miss
+    // (modern RN sends console output to React DevTools, not Metro).
+    if (linked) {
+      client.info('[owlscope] native perf module linked — FPS / memory / thermal / battery active');
+    } else {
+      const fix =
+        Platform.OS === 'ios'
+          ? 'cd ios && pod install && rebuild the app (Xcode or `npx react-native run-ios`)'
+          : 'rebuild the app via `npx react-native run-android` — Metro reload alone is not enough';
+      client.warn(
+        `[owlscope] OwlScopePerf native module NOT linked on ${Platform.OS}. Performance panel will stay empty. Fix: ${fix}.`,
+      );
+    }
+  }
 }
 
 /** Carried in the handshake so the desktop sidebar can distinguish the

@@ -206,6 +206,85 @@ function adbReverse() {
 }
 
 // ──────────────────────────────────────────────────────────────────────
+// iOS pod install — links the OwlScope native perf module
+// ──────────────────────────────────────────────────────────────────────
+
+function podInstall(cwd) {
+  const iosDir = path.join(cwd, 'ios');
+  if (!fs.existsSync(path.join(iosDir, 'Podfile'))) {
+    log('no ios/Podfile — skip pod install');
+    return;
+  }
+  // Prefer `pod install` (newer RN scaffolds use it directly). Falls back
+  // to `bundle exec pod install` if a Gemfile is present (RN 0.71+).
+  const useBundle = fs.existsSync(path.join(cwd, 'Gemfile'));
+  const cmd = useBundle ? 'bundle exec pod install' : 'pod install';
+  try {
+    log(`running ${cmd} (linking OwlScope native module)…`);
+    execSync(cmd, { cwd: iosDir, stdio: QUIET ? 'ignore' : 'inherit' });
+    log('pod install OK');
+  } catch (e) {
+    warn(`pod install failed: ${e.message}`);
+    warn('run it manually: cd ios && pod install');
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Teardown — undo every change `setup` made
+// ──────────────────────────────────────────────────────────────────────
+
+function unpatchIos(cwd) {
+  const plists = findInfoPlists(cwd);
+  if (plists.length === 0) {
+    log('no Info.plist found — nothing to unpatch');
+    return;
+  }
+  const localNetKeyRe = /\s*<key>NSLocalNetworkUsageDescription<\/key>\s*<string>OwlScope debugger connection<\/string>/;
+  const allowsLocalRe = /\s*<key>NSAllowsLocalNetworking<\/key>\s*<true\/>/;
+  for (const plist of plists) {
+    let content = fs.readFileSync(plist, 'utf8');
+    let touched = false;
+    if (localNetKeyRe.test(content)) {
+      content = content.replace(localNetKeyRe, '');
+      touched = true;
+    }
+    if (allowsLocalRe.test(content)) {
+      content = content.replace(allowsLocalRe, '');
+      touched = true;
+    }
+    if (touched) {
+      fs.writeFileSync(plist, content);
+      log(`unpatched ${path.relative(cwd, plist)}`);
+    }
+  }
+}
+
+function adbReverseRemove() {
+  const adb = findAdb();
+  if (!adb) return;
+  let devices = [];
+  try {
+    const out = execSync(`"${adb}" devices`, { encoding: 'utf8' });
+    devices = out
+      .split('\n')
+      .slice(1)
+      .map((line) => line.trim())
+      .filter((line) => line && line.endsWith('\tdevice'))
+      .map((line) => line.split('\t')[0]);
+  } catch {
+    return;
+  }
+  for (const id of devices) {
+    try {
+      execSync(`"${adb}" -s ${id} reverse --remove tcp:9090`);
+      log(`adb reverse removed on ${id}`);
+    } catch {
+      /* nothing to remove */
+    }
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
 
 function main() {
   const cwd = process.cwd();
@@ -217,14 +296,26 @@ function main() {
     patchIos(cwd);
     return;
   }
+  if (SUBCMD === 'pod') {
+    podInstall(cwd);
+    return;
+  }
+  if (SUBCMD === 'teardown') {
+    log('tearing down OwlScope from this project…');
+    unpatchIos(cwd);
+    adbReverseRemove();
+    log('done. You can now `npm uninstall owlscope`.');
+    return;
+  }
   if (SUBCMD === 'setup') {
     log('running setup…');
     patchIos(cwd);
+    podInstall(cwd);
     adbReverse();
     log('done. Now: import { startOwlScope } from "owlscope/rn"; startOwlScope({ name: "<app>" })');
     return;
   }
-  console.error(`Unknown subcommand "${SUBCMD}". Try: setup | patch-ios | reverse`);
+  console.error(`Unknown subcommand "${SUBCMD}". Try: setup | patch-ios | pod | reverse | teardown`);
   process.exit(1);
 }
 

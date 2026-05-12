@@ -10,6 +10,10 @@ export { ConsolePlugin } from './plugins/console.js';
 export { NetworkFetchPlugin } from './plugins/network-fetch.js';
 export { NetworkXhrPlugin } from './plugins/network-xhr.js';
 export { ErrorsPlugin } from './plugins/errors.js';
+// Plugins/performance is RN-only at runtime (depends on react-native).
+// We do not re-export it from the universal entry to avoid pulling
+// react-native into Node / Web bundles. Consumers wire it up via
+// `owlscope/rn` automatically.
 export { Transport } from './core/transport.js';
 export { safeClone, safeStringify } from './core/serializer.js';
 export { redact, DEFAULT_REDACT_KEYS } from './core/redact.js';

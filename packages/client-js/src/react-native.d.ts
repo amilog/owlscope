@@ -8,4 +8,12 @@ declare module 'react-native' {
   export const NativeModules: Record<string, unknown> & {
     SourceCode?: { scriptURL?: string };
   };
+  export interface EmitterSubscription {
+    remove(): void;
+  }
+  export class NativeEventEmitter {
+    constructor(nativeModule?: unknown);
+    addListener(eventType: string, listener: (data: unknown) => void): EmitterSubscription;
+    removeAllListeners(eventType: string): void;
+  }
 }

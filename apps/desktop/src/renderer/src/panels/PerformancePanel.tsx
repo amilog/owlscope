@@ -7,6 +7,8 @@ import {
   type FrameSample,
   type JankEvent,
 } from '@/store/performance';
+import { useClientsStore } from '@/store/clients';
+import { useEventsStore } from '@/store/events';
 import { LineChart } from '@/components/perf/LineChart';
 
 const WINDOWS: { label: string; seconds: number }[] = [
@@ -245,18 +247,7 @@ export function PerformancePanel() {
       </div>
 
       {empty ? (
-        <div className="flex-1 flex items-center justify-center text-text-muted text-xs py-24">
-          <div className="text-center max-w-md">
-            <Activity className="w-8 h-8 mx-auto text-text-muted/40 mb-3" />
-            <p className="mb-2">No performance samples yet.</p>
-            <p className="text-[11px] leading-relaxed">
-              Make sure your Flutter app uses{' '}
-              <code className="font-mono text-purple-300">PerformancePlugin()</code> and is
-              running in <code className="font-mono">kDebugMode</code> or{' '}
-              <code className="font-mono">profile</code> mode.
-            </p>
-          </div>
-        </div>
+        <PerformanceEmptyState />
       ) : (
         <div className="p-4 space-y-4">
           {/* KPI row */}
@@ -398,6 +389,126 @@ export function PerformancePanel() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Platform-aware help shown when no perf samples have arrived yet. We
+ *  detect what's already connected and show the matching setup steps —
+ *  including a prominent "native module not linked" diagnostic when an
+ *  RN client emitted a `[owlscope] OwlScopePerf native module NOT
+ *  linked…` warning into the Logs panel. That warning is the SDK's own
+ *  self-check, so surfacing it here saves developers from hunting
+ *  through the timeline. */
+function PerformanceEmptyState() {
+  const clients = useClientsStore((s) => s.clients);
+  const events = useEventsStore((s) => s.events);
+
+  const platforms = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of Object.values(clients)) set.add(c.handshake.platform);
+    return set;
+  }, [clients]);
+
+  const hasRn = platforms.has('react-native');
+  const hasFlutter = platforms.has('flutter');
+
+  // Find the most recent OwlScopePerf self-diagnostic (emitted by
+  // `startOwlScope()` in the SDK). Tells us definitively whether the
+  // native module is linked.
+  const perfDiag = useMemo(() => {
+    for (let i = events.length - 1; i >= 0; i--) {
+      const e = events[i];
+      if (e.type !== 'console') continue;
+      const args = (e.payload as { args?: unknown[] } | null)?.args;
+      const text = Array.isArray(args)
+        ? args.map((a) => (typeof a === 'string' ? a : '')).join(' ')
+        : '';
+      if (text.includes('[owlscope] native perf module linked')) {
+        return { state: 'linked' as const };
+      }
+      if (text.includes('OwlScopePerf native module NOT linked')) {
+        return { state: 'not-linked' as const, message: text };
+      }
+    }
+    return null;
+  }, [events]);
+
+  return (
+    <div className="flex-1 flex items-start justify-center text-text-muted text-xs py-12 px-4">
+      <div className="max-w-2xl w-full space-y-4">
+        <div className="text-center">
+          <Activity className="w-8 h-8 mx-auto text-text-muted/40 mb-3" />
+          <p className="text-text-secondary">No performance samples yet.</p>
+        </div>
+
+        {perfDiag?.state === 'not-linked' && (
+          <div className="rounded-md border border-owl-warn/40 bg-owl-warn/5 p-3 text-[11px] leading-relaxed">
+            <div className="text-owl-warn font-semibold mb-1">
+              ⚠ Native perf module not linked
+            </div>
+            <p className="text-text-secondary mb-2">
+              The OwlScope SDK is connected, but the iOS / Android native module isn't loaded.
+              JS-only metrics can't reach this panel without it.
+            </p>
+            <div className="font-mono text-text-primary bg-bg-elevated rounded px-2 py-1.5 text-[10px]">
+              # rebuild — Metro reload alone is not enough{'\n'}
+              {hasRn && Object.values(clients).some((c) => c.handshake.framework === 'iOS')
+                ? 'cd ios && pod install && cd ..\nnpx react-native run-ios'
+                : 'npx react-native run-android'}
+            </div>
+            {hasRn && (
+              <p className="mt-2 text-text-muted">
+                If autolinking didn't pick up <code className="font-mono">owlscope</code>, also try{' '}
+                <code className="font-mono">npx react-native config | grep owlscope</code> — the
+                package should appear in the dependency map.
+              </p>
+            )}
+          </div>
+        )}
+
+        {perfDiag?.state === 'linked' && (
+          <div className="rounded-md border border-owl-success/40 bg-owl-success/5 p-3 text-[11px]">
+            <div className="text-owl-success font-semibold">✓ Native module linked</div>
+            <p className="text-text-secondary mt-0.5">
+              Waiting for the first 1 Hz sample (typically arrives within a second of app launch).
+              If nothing appears in 5–10 s, force-reload the app.
+            </p>
+          </div>
+        )}
+
+        {hasFlutter && (
+          <div className="rounded-md border border-border-subtle bg-bg-elevated p-3 text-[11px]">
+            <div className="text-text-secondary font-semibold mb-1">Flutter setup</div>
+            <p className="text-text-muted">
+              Make sure your app uses{' '}
+              <code className="font-mono text-purple-300">PerformancePlugin()</code> and is
+              running in <code className="font-mono">kDebugMode</code> or{' '}
+              <code className="font-mono">profile</code> mode.
+            </p>
+          </div>
+        )}
+
+        {hasRn && !perfDiag && (
+          <div className="rounded-md border border-border-subtle bg-bg-elevated p-3 text-[11px]">
+            <div className="text-text-secondary font-semibold mb-1">React Native setup</div>
+            <p className="text-text-muted">
+              Restart the SDK with <code className="font-mono">silent: false</code> or just wait — the
+              first call to <code className="font-mono">startOwlScope()</code> emits a self-check
+              that will show up here within a second.
+            </p>
+          </div>
+        )}
+
+        {!hasRn && !hasFlutter && (
+          <div className="rounded-md border border-border-subtle bg-bg-elevated p-3 text-[11px] text-text-muted">
+            No client connected yet. Once your app calls{' '}
+            <code className="font-mono text-purple-300">startOwlScope()</code> (RN) or{' '}
+            <code className="font-mono text-purple-300">owlscopeAuto()</code> (Flutter) and the
+            handshake completes, this panel populates automatically.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
